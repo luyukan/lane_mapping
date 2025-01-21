@@ -12,9 +12,12 @@ namespace mono_lane_mapping {
       MapGraph();
       static MapGraph &GetInstance();
       void Init();
-      const std::map<uint64_t, LaneLandmark::Ptr>& GetLandmarks();
-      uint64_t GetLaneLandmarkNum();
+      const std::map<int, LaneLandmark::Ptr>& GetLandmarks();
+      int GetLaneLandmarkNum();
+      void AddLandmark(const LaneLandmark::Ptr &landmark);
+      LaneLandmark::Ptr GetLandmark(int id);
+      std::map<int, KDTree::Ptr> GetLandmarkTrees(const std::set<int> &tracking_id_set) const;
     private:
-      std::map<uint64_t, LaneLandmark::Ptr> lane_landmarks_;
+      std::map<int, LaneLandmark::Ptr> lane_landmarks_;
   };
 };  // namespace mono_lane_mapping

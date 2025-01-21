@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <iostream>
+#include <fstream>
 #include <yaml-cpp/yaml.h>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
@@ -21,8 +22,8 @@ class DatasetReader {
   void load_lane_observations(const std::string &dir);
   void load_pose(const std::string &dir);
   std::string config_file_;
-  std::map<int64_t, Odometry> pose_data_;
-  std::map<int64_t, FrameObservation> frame_observations_;
-  std::map<int64_t, Odometry>::iterator data_iterator_;
+  std::map<long long, Odometry> pose_data_;
+  std::map<long long, FrameObservation> frame_observations_;
+  std::map<long long, Odometry>::iterator data_iterator_;
 };
 }  // namespace mono_lane_mapping

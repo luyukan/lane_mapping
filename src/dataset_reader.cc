@@ -35,6 +35,7 @@ bool DatasetReader::PopOutSyncData(Odometry &sync_odometry,
     }
     sync_odometry = data_iterator_->second;
     sync_frame_observation = it_frame_observation->second;
+    ++data_iterator_;
     return true;
 
   } else {
@@ -50,7 +51,7 @@ void DatasetReader::load_lane_observations(const std::string &dir) {
       std::string lane_predict_file = dir_iter->path().string();
       int n = lane_predict_file.find_last_of("/");
       int m = lane_predict_file.find_last_of(".");
-      int64_t timestamp =
+      long long timestamp =
           std::atoll(lane_predict_file.substr(n + 1, m - n - 1).c_str());
       FrameObservation frame_observation;
       frame_observation.timestamp = timestamp;
@@ -63,25 +64,34 @@ void DatasetReader::load_lane_observations(const std::string &dir) {
         LaneObservation lane_observation;
         lane_observation.local_id = local_id;
         int category = std::atoi(split_strings[0].c_str());
+        if (category != 1) {
+          continue;
+        }
         lane_observation.category = static_cast<uint8_t>(category);
         ++local_id;
         for (size_t i = 0; i < (split_strings.size() - 1) / 4; ++i) {
           LanePoint lane_point;
-          lane_point.point_wcs.x() = std::atof(split_strings[4 * i + 1].c_str());
-          lane_point.point_wcs.y() =
-              std::atof(split_strings[4 * i + 2].c_str());
-          lane_point.point_wcs.z() =
-              std::atof(split_strings[4 * i + 3].c_str());
+          lane_point.position.x() = std::atof(split_strings[4 * i + 1].c_str());
+          lane_point.position.y() = std::atof(split_strings[4 * i + 2].c_str());
+          lane_point.position.z() = std::atof(split_strings[4 * i + 3].c_str());
           lane_point.visibility = std::atof(split_strings[4 * i + 4].c_str());
           lane_observation.lane_points.push_back(lane_point);
         }
         frame_observation.lane_observations.push_back(lane_observation);
       }
       fin.close();
-
+      if (frame_observation.lane_observations.empty()) {
+        continue;
+      }
       frame_observations_[timestamp] = frame_observation;
     }
   }
+
+  // type freq for this dataset
+  //   1 === 478
+  // 2 === 246
+  // 10 === 30
+  // 20 === 218
 }
 
 void DatasetReader::load_pose(const std::string &dir) {
@@ -93,7 +103,7 @@ void DatasetReader::load_pose(const std::string &dir) {
       std::string pose_file = dir_iter->path().string();
       int n = pose_file.find_last_of("/");
       int m = pose_file.find_last_of(".");
-      int64_t timestamp =
+      long long timestamp =
           std::atoll(pose_file.substr(n + 1, m - n - 1).c_str());
 
       std::ifstream fin(pose_file, std::ios::in);

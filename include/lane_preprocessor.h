@@ -1,10 +1,12 @@
 #pragma once
 
-#include <memory>
-#include <iostream>
-#include <Eigen/Eigen>
 #include <yaml-cpp/yaml.h>
 
+#include <Eigen/Eigen>
+#include <iostream>
+#include <memory>
+
+#include "system_param.h"
 #include "type_define.h"
 #include "utils.h"
 
@@ -14,14 +16,14 @@ class LanePreprocessor {
   typedef std::shared_ptr<LanePreprocessor> Ptr;
   static LanePreprocessor &GetInstance();
   LanePreprocessor();
-  void Init(const std::string &config);
-  void DenoiseLanePoints(const FrameObservation &frame_observation,
+  void Init();
+  void DenoiseLaneObservation(const FrameObservation &frame_observation,
                          FrameObservation &cur_frame_observation);
 
  private:
-  void denoisePoints(const std::vector<LanePoint> &lane_points, std::vector<LanePoint> &denoised_lane_points);
-  Eigen::MatrixXd constructDataMatrix(const std::vector<LanePoint> &lane_points);
-  Eigen::VectorXd pca(const Eigen::MatrixXd& data);
+  void denoisePoints(const std::vector<LanePoint> &lane_points,
+                     std::vector<LanePoint> &denoised_lane_points);
   double downsample_distance_{0.0};
+  int observation_pts_num_min_{10};
 };
 }  // namespace mono_lane_mapping
