@@ -6,7 +6,7 @@ namespace mono_lane_mapping {
 struct Odometry {
   Eigen::Vector3d twb;
   Eigen::Quaterniond qwb;
-  int64_t timestamp;
+  uint64_t timestamp;
 };
 
 struct LanePoint {
@@ -16,13 +16,18 @@ struct LanePoint {
 
 struct LaneObservation {
   std::vector<LanePoint> lane_points;
-  int64_t local_id;
-  int64_t track_id;
+  uint32_t local_id;
+  uint8_t category;
 };
 
 struct FrameObservation {
   std::vector<LaneObservation> lane_observations;
   int64_t timestamp;
+};
+
+struct MatchResult {
+  int32_t queryIdx;
+  int32_t trainIdx;
 };
 
 }  // namespace mono_lane_mapping

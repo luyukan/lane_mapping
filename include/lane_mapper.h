@@ -3,8 +3,10 @@
 #include <iostream>
 #include <memory>
 
-#include "type_define.h"
 #include "lane_preprocessor.h"
+#include "lane_tracker.h"
+#include "map_graph.h"
+#include "type_define.h"
 
 namespace mono_lane_mapping {
 class LaneMapper {
@@ -19,6 +21,17 @@ class LaneMapper {
  private:
   void preprocess_lane_points(const FrameObservation &frame_observation,
                               FrameObservation &cur_frame_observation);
+
+  void init_map_graph(const FrameObservation &frame_observation);
+
+  std::vector<LaneObservation> observation_sliding_window_;
+  std::vector<Odometry> pose_sliding_window_;
+
+  int8_t window_size_{8};
+  bool initialized_{false};
+
+  FrameObservation last_frame_observation_;
+
 };
 
 }  // namespace mono_lane_mapping

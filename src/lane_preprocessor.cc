@@ -23,13 +23,13 @@ void LanePreprocessor::denoisePoints(
   double min_x = transformed_X.col(0).minCoeff();
   double max_x = transformed_X.col(0).maxCoeff();
 
-  Eigen::VectorXd coeff_xy = cubicPolyFix(transformed_X.col(0), transformed_X.col(1));
-  Eigen::VectorXd coeff_xz = cubicPolyFix(transformed_X.col(0), transformed_X.col(2));
+  Eigen::VectorXd coeff_xy = CubicPolyFit(transformed_X.col(0), transformed_X.col(1));
+  Eigen::VectorXd coeff_xz = CubicPolyFit(transformed_X.col(0), transformed_X.col(2));
 
   double x = min_x;
   while(x < max_x) {
-    double y = applyCubicPoly(x, coeff_xy);
-    double z = applyCubicPoly(x, coeff_xz);
+    double y = ApplyCubicPoly(x, coeff_xy);
+    double z = ApplyCubicPoly(x, coeff_xz);
     LanePoint denoised_lane_point;
     denoised_lane_point.point_wcs = R.transpose() * Eigen::Vector3d(x, y, z); // convert back
     denoised_lane_points.push_back(denoised_lane_point);
@@ -45,27 +45,6 @@ void LanePreprocessor::denoisePoints(
 }
 
 
-Eigen::VectorXd LanePreprocessor::cubicPolyFix(const Eigen::VectorXd &x, const Eigen::VectorXd &y) {
-  int n_x = x.rows();
-  int n_y = y.rows();
-
-  if (n_x != n_y) {
-    std::cout << "Cubic PolyFit Error: x and y size not equal\n";
-  }
-
-  Eigen::MatrixXd A(n_x, 4);
-  for (int i = 0; i < n_x; ++i) {
-    A(i, 0) = 1.0;
-    A(i, 1) = x[i];
-    A(i, 2) = x[i] * x[i];
-    A(i, 3) = x[i] * x[i] * x[i];
-  }
-
-  Eigen::VectorXd coeffs = (A.transpose() * A).ldlt().solve(A.transpose() * y);
-
-  return coeffs;
-}
-
 Eigen::VectorXd LanePreprocessor::pca(const Eigen::MatrixXd& data) {
   Eigen::VectorXd mean = data.colwise().mean();
   Eigen::MatrixXd centered = data.rowwise() - mean.transpose();
@@ -75,21 +54,6 @@ Eigen::VectorXd LanePreprocessor::pca(const Eigen::MatrixXd& data) {
   Eigen::MatrixXd eigenvectors = solver.eigenvectors();
 
   return eigenvectors.col(0);
-
-}
-
-double LanePreprocessor::applyCubicPoly(const double x, const Eigen::VectorXd &coeff) {
-  if (coeff.rows() != 4) {
-    std::cout << "Cubic Coeff Wrong\n";
-  }
-
-  Eigen::VectorXd multiplier = Eigen::VectorXd::Ones(4);
-  multiplier[0] = 1.0;
-  multiplier[1] = x;
-  multiplier[2] = x*x;
-  multiplier[3] = x*x*x;
-
-  return multiplier.dot(coeff);
 
 }
 

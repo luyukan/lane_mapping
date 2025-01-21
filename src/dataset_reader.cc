@@ -56,21 +56,23 @@ void DatasetReader::load_lane_observations(const std::string &dir) {
       frame_observation.timestamp = timestamp;
       std::ifstream fin(lane_predict_file, std::ios::in);
       std::string line;
-      int local_id = 0;
+      uint32_t local_id = 0;
       while (getline(fin, line)) {
         std::vector<std::string> split_strings;
         boost::split(split_strings, line, boost::is_any_of(" "));
         LaneObservation lane_observation;
         lane_observation.local_id = local_id;
+        int category = std::atoi(split_strings[0].c_str());
+        lane_observation.category = static_cast<uint8_t>(category);
         ++local_id;
-        for (size_t i = 0; i < split_strings.size() / 4; ++i) {
+        for (size_t i = 0; i < (split_strings.size() - 1) / 4; ++i) {
           LanePoint lane_point;
-          lane_point.point_wcs.x() = std::atof(split_strings[4 * i].c_str());
+          lane_point.point_wcs.x() = std::atof(split_strings[4 * i + 1].c_str());
           lane_point.point_wcs.y() =
-              std::atof(split_strings[4 * i + 1].c_str());
-          lane_point.point_wcs.z() =
               std::atof(split_strings[4 * i + 2].c_str());
-          lane_point.visibility = std::atof(split_strings[4 * i + 3].c_str());
+          lane_point.point_wcs.z() =
+              std::atof(split_strings[4 * i + 3].c_str());
+          lane_point.visibility = std::atof(split_strings[4 * i + 4].c_str());
           lane_observation.lane_points.push_back(lane_point);
         }
         frame_observation.lane_observations.push_back(lane_observation);
