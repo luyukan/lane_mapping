@@ -1,0 +1,80 @@
+# 编译生成的文件
+*.o
+*.obj
+*.lo
+*.la
+*.al
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+*.i
+*.ii
+*.s
+*.su
+
+# 依赖文件
+*.d
+*.dSYM/
+*.pch
+*.mod
+*.idx
+*.ilk
+*.tlog
+*.pdb
+*.pgd
+*.pidb
+
+# 临时文件
+*.tmp
+*.temp
+*.log
+
+# IDE 和编辑器相关
+# CLion 和 CMake
+.idea/
+cmake-build-*/ 
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+build/
+Makefile
+CMakeLists.txt.user
+
+# Visual Studio
+*.vcxproj*
+*.sln
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+*.user
+*.filters
+ipch/
+.vscode/
+
+# Code::Blocks
+*.layout
+*.depend
+*.cbp
+*.cxx
+
+# Xcode
+*.xcworkspace
+*.xcuserstate
+*.xcuserdata
+*.xcodeproj
+*.swiftpm
+.build/
+
+# 操作系统和工具生成的垃圾文件
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
