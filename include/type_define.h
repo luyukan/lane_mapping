@@ -10,7 +10,7 @@ struct Odometry {
 };
 
 struct LanePoint {
-  Eigen::Vector3d point_wcs;
+  Eigen::Vector3d position;
   double visibility;
 };
 

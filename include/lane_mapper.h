@@ -22,7 +22,7 @@ class LaneMapper {
   void preprocess_lane_points(const FrameObservation &frame_observation,
                               FrameObservation &cur_frame_observation);
 
-  void init_map_graph(const FrameObservation &frame_observation);
+  void init_map_graph(const FrameObservation &frame_observation, const Odometry &pose);
 
   std::vector<LaneObservation> observation_sliding_window_;
   std::vector<Odometry> pose_sliding_window_;

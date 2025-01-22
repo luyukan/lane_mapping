@@ -1,4 +1,7 @@
-dataset_dir: /home/yukan/Documents/data/OpenLane/OpenLane/lane3d_dataset/
+dataset_dir: /home/yukan/Documents/work/lane_mapping/lane3d_dataset/
 
 preprocess:
   downsample_distance: 0.5
+
+lane_mapping:
+  ctrl_points_chord: 3.0

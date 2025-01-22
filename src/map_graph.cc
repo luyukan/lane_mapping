@@ -13,6 +13,9 @@ MapGraph &MapGraph::GetInstance() {
 }
 void MapGraph::Init() {}
 
+const std::map<uint64_t, LaneLandmark::Ptr>& MapGraph::GetLandmarks() {
+  return lane_landmarks_;
+}
 
 uint64_t MapGraph::GetLaneLandmarkNum() {
   return lane_landmarks_.size();

@@ -33,7 +33,7 @@ void LaneMapper::InputSyncData(const Odometry &pose,
   }
   else {
     if (last_frame_observation_.timestamp > 0) {
-      init_map_graph(frame_observation);
+      init_map_graph(cur_frame_observation, pose);
       initialized_ = true;
     }
   }
@@ -47,12 +47,19 @@ void LaneMapper::preprocess_lane_points(
   lane_preprocessor.DenoiseLanePoints(frame_observation, cur_frame_observation);
 }
 
-void LaneMapper::init_map_graph(const FrameObservation &frame_observation) {
+void LaneMapper::init_map_graph(const FrameObservation &frame_observation, const Odometry &pose) {
   MapGraph &map_graph = MapGraph::GetInstance();
 
-  LaneLandmark::Ptr lane_landmark = std::make_shared<LaneLandmark>();
-  uint64_t landmark_id = map_graph.GetLaneLandmarkNum();
-  lane_landmark->SetId(landmark_id);
+  if (map_graph.GetLandmarks().empty()) {
+    for (size_t i = 0; i < frame_observation.lane_observations.size(); ++i) {
+      LaneLandmark::Ptr lane_landmark = std::make_shared<LaneLandmark>();
+      uint64_t landmark_id = map_graph.GetLaneLandmarkNum();
+      lane_landmark->SetId(landmark_id);
+      lane_landmark->SetCategory(frame_observation.lane_observations.at(i).category);
+      lane_landmark->InitCtrlPointsWithLaneObservation(frame_observation.lane_observations.at(i), pose);
+    }
+
+  }
 
 }
 

@@ -67,10 +67,10 @@ void DatasetReader::load_lane_observations(const std::string &dir) {
         ++local_id;
         for (size_t i = 0; i < (split_strings.size() - 1) / 4; ++i) {
           LanePoint lane_point;
-          lane_point.point_wcs.x() = std::atof(split_strings[4 * i + 1].c_str());
-          lane_point.point_wcs.y() =
+          lane_point.position.x() = std::atof(split_strings[4 * i + 1].c_str());
+          lane_point.position.y() =
               std::atof(split_strings[4 * i + 2].c_str());
-          lane_point.point_wcs.z() =
+          lane_point.position.z() =
               std::atof(split_strings[4 * i + 3].c_str());
           lane_point.visibility = std::atof(split_strings[4 * i + 4].c_str());
           lane_observation.lane_points.push_back(lane_point);

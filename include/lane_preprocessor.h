@@ -20,8 +20,6 @@ class LanePreprocessor {
 
  private:
   void denoisePoints(const std::vector<LanePoint> &lane_points, std::vector<LanePoint> &denoised_lane_points);
-  Eigen::MatrixXd constructDataMatrix(const std::vector<LanePoint> &lane_points);
-  Eigen::VectorXd pca(const Eigen::MatrixXd& data);
   double downsample_distance_{0.0};
 };
 }  // namespace mono_lane_mapping
