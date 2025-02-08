@@ -8,9 +8,9 @@ LaneMapper &LaneMapper::GetInstance() {
 }
 LaneMapper::LaneMapper() {}
 
-void LaneMapper::Init(const std::string &config_file) {
+void LaneMapper::Init() {
   LanePreprocessor &lane_preprocessor = LanePreprocessor::GetInstance();
-  lane_preprocessor.Init(config_file);
+  lane_preprocessor.Init();
 
   MapGraph &map_graph = MapGraph::GetInstance();
   map_graph.Init();
@@ -19,6 +19,10 @@ void LaneMapper::Init(const std::string &config_file) {
   lane_tracker.Init();
 
   last_frame_observation_.timestamp = -1;
+  const auto& lane_mapping_parameters = SystemParam::GetInstance().GetLaneMappingParameters();
+  candidate_angle_thresh_ = lane_mapping_parameters.candidate_angle_thresh;
+
+  printSlogan();
 }
 
 void LaneMapper::InputSyncData(const Odometry &pose,
@@ -28,10 +32,9 @@ void LaneMapper::InputSyncData(const Odometry &pose,
   preprocess_lane_points(frame_observation, cur_frame_observation);
 
   LaneTracker &lane_tracker = LaneTracker::GetInstance();
-  if(initialized_) {
+  if (initialized_) {
     std::vector<MatchResult> association = lane_tracker.AssociateDetectionWithLast();
-  }
-  else {
+  } else {
     if (last_frame_observation_.timestamp > 0) {
       init_map_graph(cur_frame_observation, pose);
       initialized_ = true;
@@ -60,7 +63,46 @@ void LaneMapper::init_map_graph(const FrameObservation &frame_observation, const
     }
 
   }
+  else {
 
+  }
+
+}
+
+void LaneMapper::printSlogan() {
+  std::cout << R"(
+          _oo0oo_
+         o8888888o
+         88" . "88
+         (| -_- |)
+         0\  =  /0
+       ___/`---'\___
+     .' \\|     |// '.
+    / \\|||  :  |||// \
+   / _||||| -:- |||||- \
+  |   | \\\  -  /// |   |
+  | \_|  ''\---/''  |_/ |
+  \  .-\__  '-'  ___/-. /
+___'. .'  /--.--\  `. .'___
+."" '<  `.___\_<|>_/___.' >' "".
+| | :  `- \`.;`\ _ /`;.`/ - ` : | |
+\  \ `_.   \_ __\ /__ _/   .-` /  /
+====`-.____`.___ \_____/__.-`____.-'====
+             `=---='
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          佛祖保佑       永无BUG
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    )" << std::endl;
+
+  std::cout << "                                                              " << std::endl;
+  std::cout << "##############################################################" << std::endl;
+  std::cout << "#                                                            #" << std::endl;
+  std::cout << "#  lane_mapping is C++ Implementation of                     #" << std::endl;
+  std::cout << "#  HKUST MonoLaneMapping Paper                               #" << std::endl;
+  std::cout << "#                                                            #" << std::endl;
+  std::cout << "##############################################################" << std::endl;
+  std::cout << "                                                              " << std::endl;
 }
 
 }  // namespace mono_lane_mapping

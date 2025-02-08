@@ -30,4 +30,14 @@ struct MatchResult {
   int32_t trainIdx;
 };
 
+struct PreProcessParameter {
+  double downsample_distance{0.0};
+};
+
+struct LaneMappingParameter {
+  double ctrl_points_chord{0.0};
+  double candidate_angle_thresh{0.0};
+};
+
+
 }  // namespace mono_lane_mapping

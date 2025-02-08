@@ -25,7 +25,7 @@ void LanePreprocessor::denoisePoints(
   Eigen::VectorXd coeff_xz = CubicPolyFit(transformed_X.col(0), transformed_X.col(2));
 
   double x = min_x;
-  while(x < max_x) {
+  while (x < max_x) {
     double y = ApplyCubicPoly(x, coeff_xy);
     double z = ApplyCubicPoly(x, coeff_xz);
     LanePoint denoised_lane_point;
@@ -42,12 +42,11 @@ void LanePreprocessor::denoisePoints(
 
 }
 
-
 void LanePreprocessor::DenoiseLanePoints(
     const FrameObservation &frame_observation,
     FrameObservation &cur_frame_observation) {
   for (size_t i = 0; i < frame_observation.lane_observations.size(); ++i) {
-    std::vector<LanePoint> denoised_lane_points;
+    std::vector<LanePoint> denoised_lane_points; // 拟合出来的车道线的点
     denoisePoints(frame_observation.lane_observations.at(i).lane_points, denoised_lane_points);
     LaneObservation lane_observation;
     lane_observation.local_id = frame_observation.lane_observations.at(i).local_id;
@@ -56,16 +55,9 @@ void LanePreprocessor::DenoiseLanePoints(
   }
 }
 
-
-
-void LanePreprocessor::Init(const std::string &config) {
-  try {
-    YAML::Node yml = YAML::LoadFile(config);
-    YAML::Node preprocess_node = yml["preprocess"];
-    downsample_distance_ = preprocess_node["downsample_distance"].as<double>();
-  } catch (const YAML::Exception &e) {
-    std::cerr << "Error reading YAML: " << e.what() << std::endl;
-  }
+void LanePreprocessor::Init() {
+  SystemParam &system_param = SystemParam::GetInstance();
+  downsample_distance_ = system_param.GetPreProcessParameters().downsample_distance;
 }
 
 }  // namespace mono_lane_mapping

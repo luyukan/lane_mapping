@@ -1,5 +1,5 @@
 #pragma once
-
+#include <math.h>
 #include <Eigen/Eigen>
 
 #include "type_define.h"
@@ -18,7 +18,14 @@ inline Eigen::VectorXd Pca(const Eigen::MatrixXd& data) {
   return eigenvectors.col(0);
 }
 
+inline double Deg2Rad(const double deg) {
 
+  return deg * (M_PI / 180.0);
+}
+
+inline double Rad2Deg(const double rad) {
+  return rad / M_PI * 180.0;
+}
 
 inline Eigen::VectorXd CubicPolyFit(const Eigen::VectorXd &x,
                                     const Eigen::VectorXd &y) {

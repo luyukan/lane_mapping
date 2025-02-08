@@ -1,5 +1,3 @@
-MESSAGE("Building Unit")
-
 ADD_EXECUTABLE(test_catmull_rom_spline ${PROJECT_SOURCE_DIR}/unit_test/test_catmull_rom_spline.cc)
 TARGET_LINK_LIBRARIES(test_catmull_rom_spline ${PROJECT_NAME})
 

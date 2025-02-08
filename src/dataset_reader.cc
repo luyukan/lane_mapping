@@ -35,6 +35,7 @@ bool DatasetReader::PopOutSyncData(Odometry &sync_odometry,
     }
     sync_odometry = data_iterator_->second;
     sync_frame_observation = it_frame_observation->second;
+    ++data_iterator_;
     return true;
 
   } else {

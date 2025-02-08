@@ -7,6 +7,8 @@
 
 #include "type_define.h"
 #include "utils.h"
+#include "system_param.h"
+
 
 namespace mono_lane_mapping {
 class LanePreprocessor {
@@ -14,7 +16,7 @@ class LanePreprocessor {
   typedef std::shared_ptr<LanePreprocessor> Ptr;
   static LanePreprocessor &GetInstance();
   LanePreprocessor();
-  void Init(const std::string &config);
+  void Init();
   void DenoiseLanePoints(const FrameObservation &frame_observation,
                          FrameObservation &cur_frame_observation);
 

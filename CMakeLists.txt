@@ -4,6 +4,7 @@ PROJECT(lane_mapping)
 SET(CMAKE_BUILD_TYPE Debug)
 
 OPTION(BUILD_UNIT_TESTS "Enable building unit tests" ON)
+OPTION(BUILD_OPENGL_VIEWER "Enable Pangolin Viewer" ON)
 
 FIND_PACKAGE(Eigen3 REQUIRED)
 INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS}/unsupported)
@@ -11,10 +12,6 @@ INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS}/unsupported)
 FIND_PACKAGE(Boost REQUIRED COMPONENTS system filesystem thread)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 # TARGET_LINK_LIBRARIES(${Boost_LIBRARIES})
-
-FIND_PACKAGE(Pangolin)
-INCLUDE_DIRECTORIES(${Pangolin_INCLUDE_DIRS})
-# TARGET_LINK_LIBRARIES(${Pangolin_LIBRARIES})
 
 FIND_PACKAGE(OpenCV REQUIRED)
 INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
@@ -33,8 +30,26 @@ FILE(GLOB SOURCES_FILES ${PROJECT_SOURCE_DIR}/src/*.cc)
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${SOURCES_FILES})
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} yaml-cpp ${Boost_LIBRARIES})
 
+
+IF (BUILD_OPENGL_VIEWER)
+    MESSAGE("Building Project With OpenGL Visualization")
+    FIND_PACKAGE(Pangolin)
+    INCLUDE_DIRECTORIES(${Pangolin_INCLUDE_DIRS})
+    # TARGET_LINK_LIBRARIES(${Pangolin_LIBRARIES})
+
+    ADD_LIBRARY(lane_mapping_visualization SHARED ${PROJECT_SOURCE_DIR}/src/visualization/visualization_variable.cc
+                                                  ${PROJECT_SOURCE_DIR}/src/visualization/pangolin_viewer.cc
+                                                  ${PROJECT_SOURCE_DIR}/src/visualization/pangolin_drawer.cc)
+    TARGET_LINK_LIBRARIES(lane_mapping_visualization ${Pangolin_LIBRARIES})
+    ADD_DEFINITIONS(-DVIEWER_ON)
+ENDIF()
+
 ADD_EXECUTABLE(lane_mapping_demo demo.cc)
 TARGET_LINK_LIBRARIES(lane_mapping_demo ${PROJECT_NAME} yaml-cpp ${Boost_LIBRARIES})
+IF (BUILD_OPENGL_VIEWER)
+    TARGET_LINK_LIBRARIES(lane_mapping_demo lane_mapping_visualization)
+ENDIF()
+
 
 IF (BUILD_UNIT_TESTS)
     MESSAGE("Building Unit Test")
