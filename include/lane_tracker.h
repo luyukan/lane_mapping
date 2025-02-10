@@ -14,7 +14,7 @@ namespace mono_lane_mapping
       LaneTracker();
       static LaneTracker &GetInstance();
       void Init();
-
+      std::vector<MatchResult> TrackWithMap(const FrameObservation &frame_observation, const Odometry &pose);
       std::vector<MatchResult> AssociateDetectionWithLast();
     private:
   };

@@ -18,11 +18,15 @@ void LaneMapper::Init() {
   LaneTracker &lane_tracker = LaneTracker::GetInstance();
   lane_tracker.Init();
 
+  SlidingWindow &sliding_w = SlidingWindow::GetInstance();
+  sliding_w.Init();
+
   last_frame_observation_.timestamp = -1;
-  const auto& lane_mapping_parameters = SystemParam::GetInstance().GetLaneMappingParameters();
+  const auto &lane_mapping_parameters =
+      SystemParam::GetInstance().GetLaneMappingParameters();
   candidate_angle_thresh_ = lane_mapping_parameters.candidate_angle_thresh;
 
-  printSlogan();
+  printInformation();
 }
 
 void LaneMapper::InputSyncData(const Odometry &pose,
@@ -33,10 +37,12 @@ void LaneMapper::InputSyncData(const Odometry &pose,
 
   LaneTracker &lane_tracker = LaneTracker::GetInstance();
   if (initialized_) {
-    std::vector<MatchResult> association = lane_tracker.AssociateDetectionWithLast();
+    track_with_map(frame_observation, pose);
+    optimize();
   } else {
     if (last_frame_observation_.timestamp > 0) {
-      init_map_graph(cur_frame_observation, pose);
+      init_map(cur_frame_observation, pose);
+      last_frame_observation_ = frame_observation;
       initialized_ = true;
     }
   }
@@ -50,26 +56,59 @@ void LaneMapper::preprocess_lane_points(
   lane_preprocessor.DenoiseLanePoints(frame_observation, cur_frame_observation);
 }
 
-void LaneMapper::init_map_graph(const FrameObservation &frame_observation, const Odometry &pose) {
+void LaneMapper::track_with_last_frame(
+    const FrameObservation &frame_observation, const Odometry &pose) {}
+
+void LaneMapper::track_with_map(const FrameObservation &frame_observation,
+                                const Odometry &pose) {
+  auto &tracker = LaneTracker::GetInstance();
+  std::vector<MatchResult> matching_res =
+      tracker.TrackWithMap(frame_observation, pose);
+
+  // init landmark if untracked
   MapGraph &map_graph = MapGraph::GetInstance();
-
-  if (map_graph.GetLandmarks().empty()) {
-    for (size_t i = 0; i < frame_observation.lane_observations.size(); ++i) {
+  for (size_t i = 0; i < matching_res.size(); ++i) {
+    if (matching_res.at(i).trainIdx == -1) {
+      // initialize landmark
       LaneLandmark::Ptr lane_landmark = std::make_shared<LaneLandmark>();
-      uint64_t landmark_id = map_graph.GetLaneLandmarkNum();
+      int landmark_id = map_graph.GetLaneLandmarkNum();
       lane_landmark->SetId(landmark_id);
-      lane_landmark->SetCategory(frame_observation.lane_observations.at(i).category);
-      lane_landmark->InitCtrlPointsWithLaneObservation(frame_observation.lane_observations.at(i), pose);
+      lane_landmark->SetCategory(
+          frame_observation.lane_observations.at(i).category);
+      map_graph.AddLandmark(lane_landmark);
+      matching_res.at(i).trainIdx = landmark_id;
+    } else {
+      int landmark_id = matching_res.at(i).trainIdx;
+      auto landmark = map_graph.GetLandmark(landmark_id);
+      landmark->UpdateCtrlPointsWithLaneObservation(
+          frame_observation.lane_observations.at(i), pose);
     }
-
-  }
-  else {
-
   }
 
+  // update information in sliding window
+  auto &sl_window = SlidingWindow::GetInstance();
+  sl_window.UpdateWindowStatus(frame_observation, pose, matching_res);
 }
 
-void LaneMapper::printSlogan() {
+void LaneMapper::init_map(const FrameObservation &frame_observation,
+                          const Odometry &pose) {
+  MapGraph &map_graph = MapGraph::GetInstance();
+
+  for (size_t i = 0; i < frame_observation.lane_observations.size(); ++i) {
+    LaneLandmark::Ptr lane_landmark = std::make_shared<LaneLandmark>();
+    int landmark_id = map_graph.GetLaneLandmarkNum();
+    lane_landmark->SetId(landmark_id);
+    lane_landmark->SetCategory(
+        frame_observation.lane_observations.at(i).category);
+    lane_landmark->InitCtrlPointsWithLaneObservation(
+        frame_observation.lane_observations.at(i), pose);
+    map_graph.AddLandmark(lane_landmark);
+  }
+}
+
+void LaneMapper::optimize() {}
+
+void LaneMapper::printInformation() {
   std::cout << R"(
           _oo0oo_
          o8888888o
@@ -95,14 +134,22 @@ ___'. .'  /--.--\  `. .'___
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     )" << std::endl;
 
-  std::cout << "                                                              " << std::endl;
-  std::cout << "##############################################################" << std::endl;
-  std::cout << "#                                                            #" << std::endl;
-  std::cout << "#  lane_mapping is C++ Implementation of                     #" << std::endl;
-  std::cout << "#  HKUST MonoLaneMapping Paper                               #" << std::endl;
-  std::cout << "#                                                            #" << std::endl;
-  std::cout << "##############################################################" << std::endl;
-  std::cout << "                                                              " << std::endl;
+  std::cout << "                                                              "
+            << std::endl;
+  std::cout << "##############################################################"
+            << std::endl;
+  std::cout << "#                                                            #"
+            << std::endl;
+  std::cout << "#  lane_mapping is C++ Implementation of                     #"
+            << std::endl;
+  std::cout << "#  HKUST MonoLaneMapping Paper                               #"
+            << std::endl;
+  std::cout << "#                                                            #"
+            << std::endl;
+  std::cout << "##############################################################"
+            << std::endl;
+  std::cout << "                                                              "
+            << std::endl;
 }
 
 }  // namespace mono_lane_mapping

@@ -1,7 +1,8 @@
 #pragma once
+#include <yaml-cpp/yaml.h>
+
 #include <iostream>
 #include <memory>
-#include <yaml-cpp/yaml.h>
 
 #include "type_define.h"
 
@@ -22,6 +23,5 @@ class SystemParam {
   PreProcessParameter preprocess_parameter_;
   LaneMappingParameter lane_mapping_parameter_;
   std::string config_file_;
-
 };
-} // namespace mono_lane_mapping
+}  // namespace mono_lane_mapping

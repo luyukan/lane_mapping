@@ -6,3 +6,4 @@ preprocess:
 lane_mapping:
   ctrl_points_chord: 3.0
   candidate_angle_thresh: 90
+  sliding_window_size: 7
