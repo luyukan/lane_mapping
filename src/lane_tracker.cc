@@ -8,7 +8,14 @@ LaneTracker &LaneTracker::GetInstance() {
 }
 LaneTracker::LaneTracker() {}
 
-void LaneTracker::Init() {}
+void LaneTracker::Init() {
+  // flann::Matrix<float> flann_dataset;
+  const auto &lane_asso_parameters =
+      SystemParam::GetInstance().GetLaneAssoParameters();
+  yaw_std_ = lane_asso_parameters.yaw_std;
+  trans_std_ = lane_asso_parameters.translation_std;
+  lane_width_ = lane_asso_parameters.lane_width;
+}
 
 std::vector<MatchResult> LaneTracker::TrackWithMap(
     const FrameObservation &frame_observation, const Odometry &pose) {

@@ -6,4 +6,10 @@ preprocess:
 lane_mapping:
   ctrl_points_chord: 3.0
   candidate_angle_thresh: 90
-  sliding_window_size: 7
+  sliding_window_size: 10
+  ctrl_noise: [0.5, 0.5, 0.5] # [x, y, z] in m
+
+lane_asso:
+  yaw_std: 5 # in degree
+  trans_std: 5 # in m
+  lane_width: 3.5 # in m

@@ -12,6 +12,10 @@ PangolinViewer::PangolinViewer() {}
 
 void PangolinViewer::Init() {}
 
+void PangolinViewer::UpdateVisualizationVariables() {
+  auto& map_graph = MapGraph::GetInstance();
+}
+
 void PangolinViewer::run() {
   pangolin::CreateWindowAndBind("LaneMapping Viewer",1024,768);
   glEnable(GL_DEPTH_TEST);

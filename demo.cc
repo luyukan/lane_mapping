@@ -37,13 +37,16 @@ int main(int argc, char** argv) {
   while (dataset_reader->PopOutSyncData(pose, frame_observation)) {
     std::cout << "Processing: " << pose.timestamp << std::endl;
     lane_mapper.InputSyncData(pose, frame_observation);
+
+#ifdef VIEWER_ON
+    pangolin_viewer.UpdateVisualizationVariables();
+#endif
+
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
 
-
-  while(true) {
-
+  while (true) {
   }
-  
+
   return 0;
 }

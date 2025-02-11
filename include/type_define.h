@@ -39,6 +39,13 @@ struct LaneMappingParameter {
   double ctrl_points_chord{0.0};
   double candidate_angle_thresh{0.0};
   int sliding_window_size{5};
+  Eigen::Vector3d ctrl_noise;
+};
+
+struct LaneAssoParameter {
+  double yaw_std{5.0}; // deg
+  double translation_std{5.0}; // meter
+  double lane_width{3.5}; // meter
 };
 
 struct WindowInfo {

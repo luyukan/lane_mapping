@@ -1,7 +1,7 @@
 #pragma once
 #include <cassert>
 #include <vector>
-
+#include <memory>
 #include <Eigen/Eigen>
 
 #include "catmull_rom_spline.h"  // Include the CatmullRomSpline class
@@ -9,6 +9,7 @@
 namespace mono_lane_mapping {
 class CatmullRomSplineList {
  public:
+  typedef std::shared_ptr<CatmullRomSplineList> Ptr;
   // Constructor: Takes control points and an optional tension parameter
   CatmullRomSplineList(Eigen::MatrixXd ctrl_pts,
                        double tau = 0.5);  // No const here

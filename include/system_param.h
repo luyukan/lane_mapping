@@ -16,12 +16,15 @@ class SystemParam {
   void LoadParameters();
   const PreProcessParameter &GetPreProcessParameters();
   const LaneMappingParameter &GetLaneMappingParameters();
+  const LaneAssoParameter &GetLaneAssoParameters();
 
  private:
   void load_preprocess_parameters(const YAML::Node &node);
   void load_lane_mapping_parameters(const YAML::Node &node);
+  void load_lane_asso_parameters(const YAML::Node &node);
   PreProcessParameter preprocess_parameter_;
   LaneMappingParameter lane_mapping_parameter_;
+  LaneAssoParameter lane_asso_parameter_;
   std::string config_file_;
 };
 }  // namespace mono_lane_mapping

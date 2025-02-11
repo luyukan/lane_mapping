@@ -38,7 +38,7 @@ void LaneMapper::InputSyncData(const Odometry &pose,
   LaneTracker &lane_tracker = LaneTracker::GetInstance();
   if (initialized_) {
     track_with_map(frame_observation, pose);
-    optimize();
+    smooth();
   } else {
     if (last_frame_observation_.timestamp > 0) {
       init_map(cur_frame_observation, pose);
@@ -47,6 +47,7 @@ void LaneMapper::InputSyncData(const Odometry &pose,
     }
   }
   last_frame_observation_ = frame_observation;
+
 }
 
 void LaneMapper::preprocess_lane_points(
@@ -106,7 +107,10 @@ void LaneMapper::init_map(const FrameObservation &frame_observation,
   }
 }
 
-void LaneMapper::optimize() {}
+void LaneMapper::smooth() {
+  GTSAMSolver &solver = GTSAMSolver::GetInstance();
+  solver.PerformBundleAjustment();
+}
 
 void LaneMapper::printInformation() {
   std::cout << R"(

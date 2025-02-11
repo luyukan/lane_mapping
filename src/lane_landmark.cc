@@ -8,6 +8,18 @@ LaneLandmark::LaneLandmark() {
   ctrl_points_chord_ = lane_mapping_paramter.ctrl_points_chord;
 }
 
+void LaneLandmark::CatMullSmooth() {
+  if (control_points_.size() >= 2) {
+    Eigen::MatrixXd points_mat = Eigen::MatrixXd::Zero(control_points_.size(), 3);
+    for (size_t i = 0; i < control_points_.size(); ++i) {
+      Eigen::Vector3d pt = control_points_.at(i).position;
+      points_mat.row(i) = pt.transpose();
+    }
+
+    curve_line_ = std::make_shared<CatmullRomSplineList>(points_mat, tau_);
+  }
+}
+
 int LaneLandmark::GetId() { return id_; }
 
 void LaneLandmark::SetId(int id) { id_ = id; }

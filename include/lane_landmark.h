@@ -6,9 +6,12 @@
 #include <memory>
 #include <set>
 
+#include <flann/flann.h>
+
 #include "system_param.h"
 #include "type_define.h"
 #include "utils.h"
+#include "catmull_rom_spline_list.h"
 
 namespace mono_lane_mapping {
 class LaneLandmark {
@@ -23,7 +26,8 @@ class LaneLandmark {
       const LaneObservation &lane_observation, const Odometry &pose);
   uint8_t GetCategory();
   void SetCategory(uint8_t category);
-
+  // update points(from catmull splin) and corresponding kdtree
+  void CatMullSmooth();
  private:
   std::vector<LanePoint> update_lane_points(
       const std::vector<LanePoint> &lane_points,
@@ -57,5 +61,8 @@ class LaneLandmark {
 
   double candidate_angle_thresh_{0.0};
   double ctrl_points_chord_{0.0};
+
+  CatmullRomSplineList::Ptr curve_line_;
+  double tau_{0.5};
 };
 }  // namespace mono_lane_mapping
