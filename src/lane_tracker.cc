@@ -24,8 +24,8 @@ std::vector<MatchResult> LaneTracker::TrackWithMap(
   std::vector<MatchResult> matching_res;
   const auto &w = SlidingWindow::GetInstance();
   std::set<int> candidate_lm_id = w.GetCurrentTrackingLandmarkId();
-  // std::vector<KDTree::Ptr> lm_trees =
-
+  const auto &map_graph = MapGraph::GetInstance();
+  std::map<int, KDTree::Ptr> lm_trees = map_graph.GetLandmarkTrees(candidate_lm_id);
   Eigen::Matrix3d Rwb = pose.qwb.toRotationMatrix();
   Eigen::Vector3d twb = pose.twb;
 

@@ -11,6 +11,7 @@
 
 #include "sliding_window.h"
 #include "kd_tree.h"
+#include "map_graph.h"
 namespace mono_lane_mapping
 {
   class LaneTracker {

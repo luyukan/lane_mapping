@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <iostream>
+#include <fstream>
 #include <yaml-cpp/yaml.h>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>

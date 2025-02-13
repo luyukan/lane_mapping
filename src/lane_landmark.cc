@@ -12,6 +12,8 @@ LaneLandmark::LaneLandmark() {
   downsample_distance_ = preprocess_parameter.downsample_distance;
 }
 
+KDTree::Ptr LaneLandmark::GetSearchTree() { return kd_tree_; }
+
 void LaneLandmark::CatMullSmooth() {
   if (control_points_.size() >= 2) {
     if (control_points_.size() < 4) {
@@ -185,12 +187,12 @@ LanePoint LaneLandmark::get_next_node(const LanePoint &query_point,
   return point;
 }
 void LaneLandmark::referesh_kd_tree() {
-  if(kd_tree_ == nullptr) {
+  if (kd_tree_ == nullptr) {
     kd_tree_ = std::make_shared<KDTree>();
   }
   kd_tree_->Reset();
   Eigen::MatrixXd lane_pts_mat = Eigen::MatrixXd::Zero(lane_points_.size(), 3);
-  for(size_t i = 0; i < lane_points_.size(); ++i) {
+  for (size_t i = 0; i < lane_points_.size(); ++i) {
     lane_pts_mat.row(i) = lane_points_.at(i).position.transpose();
   }
   kd_tree_->ConstructTree(lane_pts_mat);
@@ -216,15 +218,15 @@ void LaneLandmark::padding_control_points() {
         (control_points_.at(1).position - control_points_.at(0).position);
     control_points_.insert(control_points_.begin(), first_ctr_pt);
     control_points_.push_back(last_ctr_pt);
-
   }
 }
 
 void LaneLandmark::referesh_lane_points_with_ctrl_points() {
-  int num_points = static_cast<int>(ctrl_points_chord_ / downsample_distance_) + 1;
+  int num_points =
+      static_cast<int>(ctrl_points_chord_ / downsample_distance_) + 1;
   Eigen::MatrixXd lane_points_mat = curve_line_->GetPoints(num_points);
   lane_points_.clear();
-  for(int i = 0; i < lane_points_mat.rows(); ++i) {
+  for (int i = 0; i < lane_points_mat.rows(); ++i) {
     LanePoint pt;
     pt.position = lane_points_mat.row(i).head(3);
     lane_points_.push_back(pt);

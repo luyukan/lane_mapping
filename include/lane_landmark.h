@@ -30,6 +30,7 @@ class LaneLandmark {
   void SetCategory(uint8_t category);
   // update points(from catmull splin) and corresponding kdtree
   void CatMullSmooth();
+  KDTree::Ptr GetSearchTree();
  private:
   std::vector<LanePoint> update_lane_points(
       const std::vector<LanePoint> &lane_points,
