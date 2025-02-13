@@ -2,21 +2,34 @@
 
 namespace mono_lane_mapping {
 LaneLandmark::LaneLandmark() {
-  const auto &lane_mapping_paramter =
+  const auto &lane_mapping_parameter =
       SystemParam::GetInstance().GetLaneMappingParameters();
-  candidate_angle_thresh_ = lane_mapping_paramter.candidate_angle_thresh;
-  ctrl_points_chord_ = lane_mapping_paramter.ctrl_points_chord;
+  candidate_angle_thresh_ = lane_mapping_parameter.candidate_angle_thresh;
+  ctrl_points_chord_ = lane_mapping_parameter.ctrl_points_chord;
+
+  const auto &preprocess_parameter =
+      SystemParam::GetInstance().GetPreProcessParameters();
+  downsample_distance_ = preprocess_parameter.downsample_distance;
 }
 
 void LaneLandmark::CatMullSmooth() {
   if (control_points_.size() >= 2) {
-    Eigen::MatrixXd points_mat = Eigen::MatrixXd::Zero(control_points_.size(), 3);
+    if (control_points_.size() < 4) {
+      padding_control_points();
+    }
+    Eigen::MatrixXd points_mat =
+        Eigen::MatrixXd::Zero(control_points_.size(), 3);
     for (size_t i = 0; i < control_points_.size(); ++i) {
       Eigen::Vector3d pt = control_points_.at(i).position;
       points_mat.row(i) = pt.transpose();
     }
 
-    curve_line_ = std::make_shared<CatmullRomSplineList>(points_mat, tau_);
+    if (curve_line_ != nullptr) {
+      curve_line_.reset(new CatmullRomSplineList(points_mat, tau_));
+    } else {
+      curve_line_ = std::make_shared<CatmullRomSplineList>(points_mat, tau_);
+    }
+    referesh_lane_points_with_ctrl_points();
   }
 }
 
@@ -25,9 +38,9 @@ int LaneLandmark::GetId() { return id_; }
 void LaneLandmark::SetId(int id) { id_ = id; }
 
 bool LaneLandmark::UpdateCtrlPointsWithLaneObservation(
-  const LaneObservation &lane_observation, const Odometry &pose) {
-    return true;
-  }
+    const LaneObservation &lane_observation, const Odometry &pose) {
+  return true;
+}
 
 bool LaneLandmark::InitCtrlPointsWithLaneObservation(
     const LaneObservation &lane_observation, const Odometry &pose) {
@@ -51,15 +64,16 @@ bool LaneLandmark::InitCtrlPointsWithLaneObservation(
 }
 
 std::vector<LanePoint> LaneLandmark::update_lane_points(
-    const std::vector<LanePoint> &lane_points, const std::set<int> &no_assigned) {
-      std::vector<LanePoint> lane_points_updated;
-      for (auto it = no_assigned.begin(); it != no_assigned.end(); ++it) {
-        int id = *it;
-        lane_points_updated.push_back(lane_points.at(id));
-      }
+    const std::vector<LanePoint> &lane_points,
+    const std::set<int> &no_assigned) {
+  std::vector<LanePoint> lane_points_updated;
+  for (auto it = no_assigned.begin(); it != no_assigned.end(); ++it) {
+    int id = *it;
+    lane_points_updated.push_back(lane_points.at(id));
+  }
 
-      return lane_points_updated;
-    }
+  return lane_points_updated;
+}
 
 void LaneLandmark::get_skeleton_points(
     const std::vector<LanePoint> &lane_points, const LanePoint &initial_point,
@@ -87,8 +101,8 @@ void LaneLandmark::get_skeleton_points(
     bool outer_border_found{false};
     // inner_border是距离query点距离小于chord thresh的点中距离最远的点
     // outer_border是距离query点中距离大于chord thresh中距离最近的点
-    find_border_point(internal_lane_points, initial_point, no_assigned, inner_border,
-                      outer_border, outer_border_found);
+    find_border_point(internal_lane_points, initial_point, no_assigned,
+                      inner_border, outer_border, outer_border_found);
 
     if (outer_border_found == false) {
       double distance_head =
@@ -152,7 +166,8 @@ void LaneLandmark::get_skeleton_points(
         internal_initial_point = next_initial;
       }
 
-      internal_lane_points = update_lane_points(internal_lane_points, no_assigned);
+      internal_lane_points =
+          update_lane_points(internal_lane_points, no_assigned);
     }
   }
 }
@@ -167,6 +182,51 @@ LanePoint LaneLandmark::get_next_node(const LanePoint &query_point,
                                       double radius) {
   LanePoint point;
   return point;
+}
+void LaneLandmark::referesh_kd_tree() {
+  if(kd_tree_ == nullptr) {
+    kd_tree_ = std::make_shared<KDTree>();
+  }
+  kd_tree_->Reset();
+  Eigen::MatrixXd lane_pts_mat = Eigen::MatrixXd::Zero(lane_points_.size(), 3);
+  for(size_t i = 0; i < lane_points_.size(); ++i) {
+    
+  }
+}
+
+void LaneLandmark::padding_control_points() {
+  size_t num_ctrl = control_points_.size();
+  if (num_ctrl == 3) {
+    LanePoint last_ctr_pt;
+    last_ctr_pt.position =
+        control_points_.at(2).position +
+        (control_points_.at(2).position - control_points_.at(1).position);
+    control_points_.push_back(last_ctr_pt);
+  }
+
+  if (num_ctrl == 2) {
+    LanePoint first_ctr_pt, last_ctr_pt;
+    last_ctr_pt.position =
+        control_points_.at(1).position +
+        (control_points_.at(1).position - control_points_.at(0).position);
+    first_ctr_pt.position =
+        control_points_.at(0).position -
+        (control_points_.at(1).position - control_points_.at(0).position);
+    control_points_.insert(control_points_.begin(), first_ctr_pt);
+    control_points_.push_back(last_ctr_pt);
+
+  }
+}
+
+void LaneLandmark::referesh_lane_points_with_ctrl_points() {
+  int num_points = static_cast<int>(ctrl_points_chord_ / downsample_distance_) + 1;
+  Eigen::MatrixXd lane_points_mat = curve_line_->GetPoints(num_points);
+  lane_points_.clear();
+  for(int i = 0; i < lane_points_mat.rows(); ++i) {
+    LanePoint pt;
+    pt.position = lane_points_mat.row(i).head(3);
+    lane_points_.push_back(pt);
+  }
 }
 
 void LaneLandmark::find_border_point(

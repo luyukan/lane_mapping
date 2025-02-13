@@ -18,7 +18,8 @@ CatmullRomSplineList::CatmullRomSplineList(Eigen::MatrixXd input_ctrl_pts,
       2 - tau_, tau_ - 2, tau_;
 }
 
-Eigen::Matrix4d CatmullRomSplineList::GetM() const { return M_; }
+Eigen::Matrix4d CatmullRomSplineList::GetM() const { return M_; 
+}
 
 Eigen::MatrixXd CatmullRomSplineList::GetPoints(int num_points) const {
   std::vector<Eigen::MatrixXd> points_list;

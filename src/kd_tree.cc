@@ -3,13 +3,15 @@
 namespace mono_lane_mapping {
 KDTree::KDTree() {}
 
-void KDTree::ContructTree(const Eigen::MatrixXd &points) {
+void KDTree::ConstructTree(const Eigen::MatrixXd &points) {
   // each row of points is a point
   kd_tree_ = std::make_shared<flann::Matrix<double>>(
       const_cast<double *>(points.data()), points.rows(), points.cols());
 
   kd_tree_index_ = std::make_shared<flann::Index<flann::L2<double>>>(
       *kd_tree_, flann::KDTreeIndexParams(1));
+
+  kd_tree_index_->buildIndex();
 }
 
 void KDTree::Query(const Eigen::VectorXd &point, double &distance, int &idx,
@@ -17,8 +19,9 @@ void KDTree::Query(const Eigen::VectorXd &point, double &distance, int &idx,
   std::vector<std::vector<int>> indices;  // Nearest neighbor indices
   std::vector<std::vector<double>> dists;
 
-  flann::Matrix<double> flann_query(const_cast<double *>(point.data()),
-                                    point.rows(), point.cols());
+  flann::Matrix<double> flann_query(const_cast<double *>(point.data()), 1,
+                                    point.rows());
+
   kd_tree_index_->knnSearch(flann_query, indices, dists, k,
                             flann::SearchParams());
 

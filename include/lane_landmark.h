@@ -12,6 +12,8 @@
 #include "type_define.h"
 #include "utils.h"
 #include "catmull_rom_spline_list.h"
+#include "catmull_rom_spline.h"
+#include "kd_tree.h"
 
 namespace mono_lane_mapping {
 class LaneLandmark {
@@ -48,6 +50,9 @@ class LaneLandmark {
                          const LanePoint &query_point,
                          std::set<int> &no_assigned, LanePoint &inner_border,
                          LanePoint &outer_border, bool &outer_border_found);
+  void referesh_lane_points_with_ctrl_points();
+  void referesh_kd_tree();
+  void padding_control_points();
   // inner_border 是距离query_point小于ctrl_points_chord的最远的点
   // outer_border 是距离query_point大于ctrl_points_chord的最近的点
   // no_assigned是距离query_point大于ctrl_points_chord的点的id
@@ -58,11 +63,16 @@ class LaneLandmark {
   Eigen::VectorXd cubic_polynomials_xz_;
   Eigen::Matrix3d poly_rotation_;
   std::vector<LanePoint> control_points_;
+  std::vector<LanePoint> lane_points_;
 
   double candidate_angle_thresh_{0.0};
   double ctrl_points_chord_{0.0};
 
   CatmullRomSplineList::Ptr curve_line_;
   double tau_{0.5};
+
+  KDTree::Ptr kd_tree_;
+
+  double downsample_distance_{0.5};
 };
 }  // namespace mono_lane_mapping
