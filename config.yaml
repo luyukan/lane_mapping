@@ -2,12 +2,15 @@ dataset_dir: /home/yukan/Documents/work/lane_mapping/lane3d_dataset/
 
 preprocess:
   downsample_distance: 0.5
+  observation_pts_num_min: 20
 
 lane_mapping:
   ctrl_points_chord: 3.0
   candidate_angle_thresh: 90
   sliding_window_size: 10
   ctrl_noise: [0.5, 0.5, 0.5] # [x, y, z] in m
+  lane_observation_min_pt_num: 20
+  keyframe_translation_thresh: 5.0 #m
 
 lane_asso:
   yaw_std: 5 # in degree

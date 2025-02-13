@@ -8,6 +8,8 @@
 
 #include "type_define.h"
 #include "system_param.h"
+
+#include "sliding_window.h"
 namespace mono_lane_mapping
 {
   class LaneTracker {
@@ -19,6 +21,7 @@ namespace mono_lane_mapping
       std::vector<MatchResult> TrackWithMap(const FrameObservation &frame_observation, const Odometry &pose);
       std::vector<MatchResult> AssociateDetectionWithLast();
     private:
+      double get_matching_thresh();
       double yaw_std_{5.0};
       double trans_std_{5.0};
       double lane_width_{3.5};

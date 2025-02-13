@@ -17,11 +17,13 @@ class SlidingWindow {
   void UpdateWindowStatus(const FrameObservation &frame_observation,
                           const Odometry &pose,
                           const std::vector<MatchResult> &matching_res);
-
+  std::set<int> GetCurrentTrackingLandmarkId() const;
  private:
   void slide_window();
+  bool is_new_keyframe(const FrameObservation &frame_observation, const Odometry &pose);
   int sliding_window_size_{5};
   std::vector<WindowInfo> sl_win_;
   std::map<int, WindowLandMarkTrackInfo> sl_win_lm_info_;
+  double keyframe_translation_thresh_{5.0};
 };
 }  // namespace mono_lane_mapping

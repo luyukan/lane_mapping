@@ -30,6 +30,7 @@ void LaneLandmark::CatMullSmooth() {
       curve_line_ = std::make_shared<CatmullRomSplineList>(points_mat, tau_);
     }
     referesh_lane_points_with_ctrl_points();
+    referesh_kd_tree();
   }
 }
 
@@ -190,8 +191,9 @@ void LaneLandmark::referesh_kd_tree() {
   kd_tree_->Reset();
   Eigen::MatrixXd lane_pts_mat = Eigen::MatrixXd::Zero(lane_points_.size(), 3);
   for(size_t i = 0; i < lane_points_.size(); ++i) {
-    
+    lane_pts_mat.row(i) = lane_points_.at(i).position.transpose();
   }
+  kd_tree_->ConstructTree(lane_pts_mat);
 }
 
 void LaneLandmark::padding_control_points() {

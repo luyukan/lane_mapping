@@ -20,6 +20,11 @@ void LaneTracker::Init() {
 std::vector<MatchResult> LaneTracker::TrackWithMap(
     const FrameObservation &frame_observation, const Odometry &pose) {
   std::vector<MatchResult> matching_res;
+  const auto &w = SlidingWindow::GetInstance();
+  std::set<int> candidate_lm_id = w.GetCurrentTrackingLandmarkId();
+  
+  // double matching_thresh = 
+
   return matching_res;
 }
 

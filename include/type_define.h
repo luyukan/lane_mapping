@@ -33,6 +33,7 @@ struct MatchResult {
 
 struct PreProcessParameter {
   double downsample_distance{0.0};
+  int observation_pts_num_min{10};
 };
 
 struct LaneMappingParameter {
@@ -40,6 +41,7 @@ struct LaneMappingParameter {
   double candidate_angle_thresh{0.0};
   int sliding_window_size{5};
   Eigen::Vector3d ctrl_noise;
+  double keyframe_translation_thresh{5.0};
 };
 
 struct LaneAssoParameter {

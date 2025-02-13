@@ -33,10 +33,13 @@ void SystemParam::LoadParameters() {
 void SystemParam::load_preprocess_parameters(const YAML::Node &node) {
   preprocess_parameter_.downsample_distance =
       node["downsample_distance"].as<double>();
-
+  preprocess_parameter_.observation_pts_num_min =
+      node["observation_pts_num_min"].as<int>();
   std::cout << "PreProcess Parameters Loaded\n";
   std::cout << "preprocess_parameter.downsample_distance: "
             << preprocess_parameter_.downsample_distance << std::endl;
+  std::cout << "preprocess_parameter.observation_pts_num_min: "
+            << preprocess_parameter_.observation_pts_num_min << std::endl;
   std::cout << "###############################################################"
                "#####\n";
 }
@@ -45,6 +48,7 @@ void SystemParam::load_lane_asso_parameters(const YAML::Node &node) {
   lane_asso_parameter_.yaw_std = node["yaw_std"].as<double>();
   lane_asso_parameter_.translation_std = node["trans_std"].as<double>();
   lane_asso_parameter_.lane_width = node["lane_width"].as<double>();
+
   std::cout << "Lane Asso Parameters Loaded\n";
   std::cout << "lane_asso_parameter.yaw_std: " << lane_asso_parameter_.yaw_std
             << std::endl;
@@ -67,6 +71,9 @@ void SystemParam::load_lane_mapping_parameters(const YAML::Node &node) {
   for (size_t i = 0; i < ctrl_noise_vector.size(); ++i) {
     lane_mapping_parameter_.ctrl_noise[i] = ctrl_noise_vector.at(i);
   }
+  lane_mapping_parameter_.keyframe_translation_thresh =
+      node["keyframe_translation_thresh"].as<double>();
+
   std::cout << "Lane Mapping Parameters Loaded\n";
   std::cout << "lane_mapping_parameter.ctrl_points_chord: "
             << lane_mapping_parameter_.ctrl_points_chord << std::endl;
@@ -76,6 +83,8 @@ void SystemParam::load_lane_mapping_parameters(const YAML::Node &node) {
             << lane_mapping_parameter_.sliding_window_size << std::endl;
   std::cout << "lane_mapping_parameter.ctrl_noise: "
             << lane_mapping_parameter_.ctrl_noise.transpose() << std::endl;
+  std::cout << "lane_mapping_parameter.keyframe_translation_thresh: "
+            << lane_mapping_parameter_.keyframe_translation_thresh << std::endl;
   std::cout << "###############################################################"
                "#####\n";
 }

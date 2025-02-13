@@ -72,6 +72,7 @@ void LaneMapper::track_with_map(const FrameObservation &frame_observation,
     if (matching_res.at(i).trainIdx == -1) {
       // initialize landmark
       LaneLandmark::Ptr lane_landmark = std::make_shared<LaneLandmark>();
+      lane_landmark->InitCtrlPointsWithLaneObservation(frame_observation.lane_observations.at(i), pose);
       int landmark_id = map_graph.GetLaneLandmarkNum();
       lane_landmark->SetId(landmark_id);
       lane_landmark->SetCategory(
