@@ -16,6 +16,7 @@ namespace mono_lane_mapping {
       int GetLaneLandmarkNum();
       void AddLandmark(const LaneLandmark::Ptr &landmark);
       LaneLandmark::Ptr GetLandmark(int id);
+      std::map<int, KDTree::Ptr> GetLandmarkTrees(const std::set<int> &id);
     private:
       std::map<int, LaneLandmark::Ptr> lane_landmarks_;
   };
