@@ -1,7 +1,7 @@
 //
 // Created by yukan on 25-1-23.
 //
-#include "visualization/visualization_variable.h"
+#include "visualization_variable.h"
 
 namespace mono_lane_mapping {
 VisualizationVariable &VisualizationVariable::GetInstance() {
@@ -9,4 +9,9 @@ VisualizationVariable &VisualizationVariable::GetInstance() {
   return instance;
 }
 VisualizationVariable::VisualizationVariable() {}
+
+
+std::mutex& VisualizationVariable::GetVisualizationMutex() {
+  return variable_mutex_;
+}
 }  // namespace mono_lane_mapping

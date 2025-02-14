@@ -3,9 +3,9 @@
 //
 #pragma once
 #include <memory>
+#include <mutex>
 #include <iostream>
 #include <Eigen/Eigen>
-#include <pangolin/pangolin.h>
 
 namespace mono_lane_mapping
 {
@@ -14,6 +14,8 @@ namespace mono_lane_mapping
     std::shared_ptr<VisualizationVariable> Ptr;
     static VisualizationVariable &GetInstance();
     VisualizationVariable();
+    std::mutex& GetVisualizationMutex();
    private:
+    std::mutex variable_mutex_;
   };
 } // namespace mono_lane_mapping

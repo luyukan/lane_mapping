@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.1.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 PROJECT(lane_mapping)
 
 SET(CMAKE_CXX_STANDARD 17)
@@ -29,11 +29,24 @@ message(STATUS "Found GTSAM: ${GTSAM_LIBRARIES}")
 FIND_PACKAGE(yaml-cpp REQUIRED)
 INCLUDE_DIRECTORIES(${YAML_CPP_INCLUDE_DIR})
 
+IF (BUILD_OPENGL_VIEWER)
+    MESSAGE("Building Project With OpenGL Visualization")
+    FIND_PACKAGE(Pangolin)
+    INCLUDE_DIRECTORIES(${Pangolin_INCLUDE_DIRS})
+    MESSAGE(Pangolin_LIBRARIES:${Pangolin_LIBRARIES})
+    ADD_DEFINITIONS(-DVIEWER_ON)
+    FILE(GLOB VISUALIZATION_SOURCES_FILES ${PROJECT_SOURCE_DIR}/src/visualization/*.cc)
+ELSE()
+  MESSAGE("Building Project Without OpenGL Visualization")
+ENDIF()
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/3rd/flann/src/cpp)
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 FILE(GLOB SOURCES_FILES ${PROJECT_SOURCE_DIR}/src/*.cc)
+IF (BUILD_OPENGL_VIEWER)
+  list(APPEND SOURCES_FILES ${VISUALIZATION_SOURCES_FILES})
+ENDIF()
 
 
 MESSAGE("PRINTING ALL INCLUDE DIRS")
@@ -50,25 +63,14 @@ ENDFOREACH()
 
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${SOURCES_FILES})
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} yaml-cpp ${Boost_LIBRARIES} gtsam flann_cpp)
-
 IF (BUILD_OPENGL_VIEWER)
-    MESSAGE("Building Project With OpenGL Visualization")
-    FIND_PACKAGE(Pangolin)
-    INCLUDE_DIRECTORIES(${Pangolin_INCLUDE_DIRS})
-    # TARGET_LINK_LIBRARIES(${Pangolin_LIBRARIES})
-
-    ADD_LIBRARY(lane_mapping_visualization SHARED ${PROJECT_SOURCE_DIR}/src/visualization/visualization_variable.cc
-                                                  ${PROJECT_SOURCE_DIR}/src/visualization/pangolin_viewer.cc
-                                                  ${PROJECT_SOURCE_DIR}/src/visualization/pangolin_drawer.cc)
-    TARGET_LINK_LIBRARIES(lane_mapping_visualization ${Pangolin_LIBRARIES})
-    ADD_DEFINITIONS(-DVIEWER_ON)
+  TARGET_LINK_LIBRARIES(${PROJECT_NAME}  ${Pangolin_LIBRARIES})
 ENDIF()
-
 
 ADD_EXECUTABLE(lane_mapping_demo demo.cc)
 TARGET_LINK_LIBRARIES(lane_mapping_demo ${PROJECT_NAME} yaml-cpp ${Boost_LIBRARIES})
 IF (BUILD_OPENGL_VIEWER)
-    TARGET_LINK_LIBRARIES(lane_mapping_demo lane_mapping_visualization)
+    TARGET_LINK_LIBRARIES(lane_mapping_demo ${Pangolin_LIBRARIES})
 ENDIF()
 
 
