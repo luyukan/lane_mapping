@@ -16,3 +16,4 @@ lane_asso:
   yaw_std: 5 # in degree
   trans_std: 5 # in m
   lane_width: 3.5 # in m
+  min_match_ratio: 0.5

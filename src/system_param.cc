@@ -48,6 +48,7 @@ void SystemParam::load_lane_asso_parameters(const YAML::Node &node) {
   lane_asso_parameter_.yaw_std = node["yaw_std"].as<double>();
   lane_asso_parameter_.translation_std = node["trans_std"].as<double>();
   lane_asso_parameter_.lane_width = node["lane_width"].as<double>();
+  lane_asso_parameter_.min_match_ratio = node["min_match_ratio"].as<double>();
 
   std::cout << "Lane Asso Parameters Loaded\n";
   std::cout << "lane_asso_parameter.yaw_std: " << lane_asso_parameter_.yaw_std

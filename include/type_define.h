@@ -48,6 +48,7 @@ struct LaneAssoParameter {
   double yaw_std{5.0}; // deg
   double translation_std{5.0}; // meter
   double lane_width{3.5}; // meter
+  double min_match_ratio{0.5};
 };
 
 struct WindowInfo {
