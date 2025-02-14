@@ -6,6 +6,8 @@
 
 #include "type_define.h"
 
+#define VIEWER_ON
+
 namespace mono_lane_mapping {
 class SystemParam {
  public:

@@ -9,6 +9,7 @@
 #include <pangolin/pangolin.h>
 
 #include "map_graph.h"
+#include "visualization/pangolin_drawer.h"
 
 namespace mono_lane_mapping
 {
@@ -19,7 +20,6 @@ class PangolinViewer {
   PangolinViewer();
   void Init();
   void Start();
-  void UpdateVisualizationVariables();
  private:
   void run();
 };

@@ -43,6 +43,25 @@ void SlidingWindow::UpdateWindowStatus(
   }
 }
 
+std::map<int, LaneLandmark::Ptr> SlidingWindow::GetCurrentTrackingLandmarks() {
+  std::set<int> current_tracking_id = this->GetCurrentTrackingLandmarkId();
+  std::map<int, LaneLandmark::Ptr> landmarks;
+  auto& map = MapGraph::GetInstance();
+  for (auto it = current_tracking_id.begin(); it != current_tracking_id.end(); ++it) {
+    int id = *it;
+    landmarks.insert(std::make_pair(id, map.GetLandmark(id)));
+  }
+
+  return landmarks;
+}
+
+Odometry SlidingWindow::GetLatestPose() {
+  return sl_win_.begin()->pose;
+}
+bool SlidingWindow::Initialized() {
+  return sl_win_.size() > 0 ? true : false ;
+}
+
 bool SlidingWindow::is_new_keyframe(const FrameObservation &frame_observation,
                                     const Odometry &pose) {
   bool is_keyframe{false};

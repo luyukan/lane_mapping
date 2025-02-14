@@ -12,8 +12,6 @@
 #include "type_define.h"
 
 
-#include "visualization_variable.h"
-
 namespace mono_lane_mapping {
 class LaneMapper {
  public:
