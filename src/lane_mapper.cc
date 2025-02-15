@@ -31,23 +31,27 @@ void LaneMapper::Init() {
 
 void LaneMapper::InputSyncData(const Odometry &pose,
                                const FrameObservation &frame_observation) {
+  std::cout << "###############################################\n";
+  std::cout << "Processing: " << pose.timestamp
+            << " With LaneObservation Size: "
+            << frame_observation.lane_observations.size() << std::endl;
+
   FrameObservation cur_frame_observation;
   cur_frame_observation.timestamp = frame_observation.timestamp;
   preprocess_lane_points(frame_observation, cur_frame_observation);
-
+  std::cout << "===== " << cur_frame_observation.lane_observations.size()
+            << std::endl;
   LaneTracker &lane_tracker = LaneTracker::GetInstance();
   if (initialized_) {
     track_with_map(frame_observation, pose);
     smooth();
   } else {
-    if (last_frame_observation_.timestamp > 0) {
-      init_map(cur_frame_observation, pose);
-      last_frame_observation_ = frame_observation;
-      initialized_ = true;
-    }
+    init_map(cur_frame_observation, pose);
+    last_frame_observation_ = frame_observation;
+    initialized_ = true;
+    std::cout << "System Initialized\n";
   }
   last_frame_observation_ = frame_observation;
-
 }
 
 void LaneMapper::preprocess_lane_points(
@@ -69,6 +73,7 @@ void LaneMapper::track_with_map(const FrameObservation &frame_observation,
   // init landmark if untracked
   MapGraph &map_graph = MapGraph::GetInstance();
   for (size_t i = 0; i < matching_res.size(); ++i) {
+    matching_res.at(i).trainIdx = -1;
     if (matching_res.at(i).trainIdx == -1) {
       // initialize landmark
       LaneLandmark::Ptr lane_landmark = std::make_shared<LaneLandmark>();
@@ -80,6 +85,7 @@ void LaneMapper::track_with_map(const FrameObservation &frame_observation,
           frame_observation.lane_observations.at(i).category);
       map_graph.AddLandmark(lane_landmark);
       matching_res.at(i).trainIdx = landmark_id;
+      std::cout << "Landmark Initialized: " << landmark_id << std::endl;
     } else {
       int landmark_id = matching_res.at(i).trainIdx;
       auto landmark = map_graph.GetLandmark(landmark_id);
@@ -106,6 +112,7 @@ void LaneMapper::init_map(const FrameObservation &frame_observation,
     lane_landmark->InitCtrlPointsWithLaneObservation(
         frame_observation.lane_observations.at(i), pose);
     map_graph.AddLandmark(lane_landmark);
+    std::cout << "Landmark Initialized: " << landmark_id << std::endl;
   }
 }
 

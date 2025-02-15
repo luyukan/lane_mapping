@@ -80,7 +80,9 @@ void DatasetReader::load_lane_observations(const std::string &dir) {
         frame_observation.lane_observations.push_back(lane_observation);
       }
       fin.close();
-
+      if (frame_observation.lane_observations.empty()) {
+        continue;
+      }
       frame_observations_[timestamp] = frame_observation;
     }
   }

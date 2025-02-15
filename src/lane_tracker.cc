@@ -44,6 +44,10 @@ std::vector<MatchResult> LaneTracker::TrackWithMap(
   const auto &w = SlidingWindow::GetInstance();
   std::set<int> candidate_lm_id = w.GetCurrentTrackingLandmarkId();
   const auto &map_graph = MapGraph::GetInstance();
+  std::cout << "Candidate Landmark: \n";
+  for (auto it = candidate_lm_id.begin(); it != candidate_lm_id.end(); ++it) {
+    std::cout << "----- " << *it << std::endl;
+  } 
   std::map<int, KDTree::Ptr> lm_trees =
       map_graph.GetLandmarkTrees(candidate_lm_id);
   Eigen::Matrix3d Rwb = pose.qwb.toRotationMatrix();
@@ -54,14 +58,14 @@ std::vector<MatchResult> LaneTracker::TrackWithMap(
       frame_observation.lane_observations.size());
 
   const double max_cost = 10000.0;
-
+#if 0
   for (size_t i = 0; i < frame_observation.lane_observations.size(); ++i) {
     std::vector<double> distance_thresh =
         get_matching_thresh(frame_observation.lane_observations.at(i));
     cost_vector.at(i).resize(candidate_lm_id.size());
     std::vector<Eigen::VectorXd> points_vector;
     for (size_t j = 0; j < frame_observation.lane_observations.size(); ++i) {
-      Eigen::Vector3d pt_w = Rwb * frame_observation.lane_observations.at(i)
+      Eigen::Vector3d pt_w = Rwb * frame_observation.lane_observations.at(j)
                                        .lane_points.at(j)
                                        .position +
                              twb;
@@ -99,7 +103,7 @@ std::vector<MatchResult> LaneTracker::TrackWithMap(
   std::fill(correspondences.begin(), correspondences.end(), -1);
   HungarianOptimizer hungarian_optimizer(cost_vector);
   hungarian_optimizer.Minimize(&unassigned_ref_idx, &unassigned_new_idx);
-
+#endif
   for (size_t i = 0; i < frame_observation.lane_observations.size(); ++i) {
     MatchResult default_res;
     default_res.queryIdx = i;
@@ -107,16 +111,22 @@ std::vector<MatchResult> LaneTracker::TrackWithMap(
     matching_res.push_back(default_res);
   }
 
-  for (size_t i = 0; i < unassigned_ref_idx.size(); ++i) {
-    int idx_mea = unassigned_ref_idx.at(i);
-    auto it_map_id = candidate_lm_id.begin();
-    std::advance(it_map_id, unassigned_new_idx.at(i));
-    int idx_map = *it_map_id;
-    if (cost_vector[idx_mea][idx_map] < max_cost) {
-      matching_res.at(idx_mea).trainIdx = idx_map;
+#if 0
+    for (size_t i = 0; i < unassigned_ref_idx.size(); ++i) {
+      int idx_mea = unassigned_ref_idx.at(i);
+      auto it_map_id = candidate_lm_id.begin();
+      std::advance(it_map_id, unassigned_new_idx.at(i));
+      int idx_map = *it_map_id;
+      if (cost_vector[idx_mea][idx_map] < max_cost) {
+        matching_res.at(idx_mea).trainIdx = idx_map;
+      }
     }
+#endif
+  std::cout << "matching info:\n";
+  for (size_t i = 0; i < matching_res.size(); ++i) {
+    std::cout << matching_res.at(i).queryIdx << " "
+              << matching_res.at(i).trainIdx << std::endl;
   }
-
   return matching_res;
 }
 

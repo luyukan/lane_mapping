@@ -48,10 +48,10 @@ void LanePreprocessor::DenoiseLanePoints(
     const FrameObservation &frame_observation,
     FrameObservation &cur_frame_observation) {
   for (size_t i = 0; i < frame_observation.lane_observations.size(); ++i) {
-    if (frame_observation.lane_observations.at(i).lane_points.size() <
-        observation_pts_num_min_) {
-      continue;
-    }
+    // if (frame_observation.lane_observations.at(i).lane_points.size() <
+    //     observation_pts_num_min_) {
+    //   continue;
+    // }
     std::vector<LanePoint> denoised_lane_points;  // 拟合出来的车道线的点
     denoisePoints(frame_observation.lane_observations.at(i).lane_points,
                   denoised_lane_points);

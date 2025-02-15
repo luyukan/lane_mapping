@@ -19,6 +19,16 @@ void PangolinDrawer::Draw() {
 }
 
 void PangolinDrawer::draw_tracking_lanes(
-    const std::map<int, LaneLandmark::Ptr>& tracking_lanes) {}
+    const std::map<int, LaneLandmark::Ptr>& tracking_lanes) {
+  for (auto it = tracking_lanes.begin(); it != tracking_lanes.end(); ++it) {
+    glBegin(GL_LINES);
+    auto lane_points = it->second->GetLanePoints();
+    for (size_t i = 0; i < lane_points.size(); ++i) {
+      glVertex3d(lane_points.at(i).position.x(), lane_points.at(i).position.y(),
+                 lane_points.at(i).position.z());
+    }
+    glEnd();
+  }
+}
 void PangolinDrawer::draw_vehicle(const Odometry& pose) {}
 }  // namespace mono_lane_mapping

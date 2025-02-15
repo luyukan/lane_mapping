@@ -306,6 +306,8 @@ const LanePoint &LaneLandmark::get_control_point(const size_t id) {
 
 void LaneLandmark::SetCategory(uint8_t category) { category_ = category; }
 
+std::vector<LanePoint> LaneLandmark::GetLanePoints() { return lane_points_; }
+
 uint8_t LaneLandmark::GetCategory() { return category_; }
 
 void LaneLandmark::curve_fitting(const std::vector<LanePoint> &lane_points) {

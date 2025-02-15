@@ -10,14 +10,15 @@ PangolinViewer &PangolinViewer::GetInstance() {
 }
 PangolinViewer::PangolinViewer() {}
 
-void PangolinViewer::Init() {}
+void PangolinViewer::Init() {
+  pango_drawer_ = std::make_shared<PangolinDrawer>();
+}
 
 void PangolinViewer::run() {
   pangolin::CreateWindowAndBind("LaneMapping Viewer",1024,768);
   glEnable(GL_DEPTH_TEST);
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 
   // Define Camera Render Object (for view / scene browsing)
   pangolin::OpenGlRenderState s_cam(
@@ -30,16 +31,13 @@ void PangolinViewer::run() {
       .SetBounds(0.0, 1.0, pangolin::Attach::Pix(175), 1.0, -1024.0f/768.0f)
       .SetHandler(new pangolin::Handler3D(s_cam));
 
-  auto& pango_drawer = PangolinDrawer::GetInstance();
 
   while(!pangolin::ShouldQuit())
   {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     d_cam.Activate(s_cam);
     glClearColor(1.0f,1.0f,1.0f,1.0f);
-    // pangolin::glDrawColouredCube();
-    pango_drawer.Draw();
-
+    pango_drawer_->Draw();
     pangolin::FinishFrame();
   }
 }

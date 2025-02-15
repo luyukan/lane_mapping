@@ -38,7 +38,6 @@ int main(int argc, char** argv) {
   LaneMapper& lane_mapper = LaneMapper::GetInstance();
   lane_mapper.Init();
   while (dataset_reader->PopOutSyncData(pose, frame_observation)) {
-    std::cout << "Processing: " << pose.timestamp << std::endl;
     lane_mapper.InputSyncData(pose, frame_observation);
 #ifdef VIEWER_ON
     auto &visualization_variable = VisualizationVariable::GetInstance();

@@ -16,8 +16,10 @@ std::mutex &VisualizationVariable::GetVisualizationMutex() {
 
 void VisualizationVariable::UpdateVariables() {
   auto &sw = SlidingWindow::GetInstance();
-  tracking_lanes_ = sw.GetCurrentTrackingLandmarks();
-  pose_ = sw.GetLatestPose();
+  if (sw.Initialized()) {
+    tracking_lanes_ = sw.GetCurrentTrackingLandmarks();
+    pose_ = sw.GetLatestPose();
+  }
 }
 
 std::map<int, LaneLandmark::Ptr> VisualizationVariable::GetTrackingLanes() {
