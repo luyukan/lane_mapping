@@ -17,7 +17,7 @@ class LanePreprocessor {
   static LanePreprocessor &GetInstance();
   LanePreprocessor();
   void Init();
-  void DenoiseLanePoints(const FrameObservation &frame_observation,
+  void DenoiseLaneObservation(const FrameObservation &frame_observation,
                          FrameObservation &cur_frame_observation);
 
  private:

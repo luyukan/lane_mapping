@@ -23,7 +23,7 @@ void PangolinViewer::run() {
   // Define Camera Render Object (for view / scene browsing)
   pangolin::OpenGlRenderState s_cam(
       pangolin::ProjectionMatrix(1024,768,500,500,512,389,0.1,1000),
-      pangolin::ModelViewLookAt(0,0,-1,0,0,0,0.0,-1.0, 0.0)
+      pangolin::ModelViewLookAt(0,0,20,0,0,0,0.0,-1.0, 0.0)
   );
 
   // Add named OpenGL viewport to window and provide 3D Handler
@@ -36,7 +36,8 @@ void PangolinViewer::run() {
   {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     d_cam.Activate(s_cam);
-    glClearColor(1.0f,1.0f,1.0f,1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    pangolin::glDrawColouredCube();
     pango_drawer_->Draw();
     pangolin::FinishFrame();
   }

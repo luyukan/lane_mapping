@@ -1,4 +1,5 @@
 #pragma once
+#include <flann/flann.h>
 #include <float.h>
 
 #include <Eigen/Eigen>
@@ -6,14 +7,12 @@
 #include <memory>
 #include <set>
 
-#include <flann/flann.h>
-
+#include "catmull_rom_spline.h"
+#include "catmull_rom_spline_list.h"
+#include "kd_tree.h"
 #include "system_param.h"
 #include "type_define.h"
 #include "utils.h"
-#include "catmull_rom_spline_list.h"
-#include "catmull_rom_spline.h"
-#include "kd_tree.h"
 
 namespace mono_lane_mapping {
 class LaneLandmark {
@@ -32,26 +31,32 @@ class LaneLandmark {
   void CatMullSmooth();
   KDTree::Ptr GetSearchTree();
   std::vector<LanePoint> GetLanePoints();
+
  private:
   std::vector<LanePoint> update_lane_points(
       const std::vector<LanePoint> &lane_points,
       const std::set<int> &no_assigned);
-  void curve_fitting(const std::vector<LanePoint> &lane_points);
+  CubicPolyLine curve_fitting(const std::vector<LanePoint> &lane_points);
   // funcion used to initialize or update control points
   void get_skeleton_points(const std::vector<LanePoint> &lane_points,
-                           const LanePoint &initial_point,
-                           bool initial_point_provided = false);
+                           const CubicPolyLine &cubic_lane,
+                           const LanePoint &initial_point);
   std::vector<LanePoint> get_candidate_points(
       const std::vector<LanePoint> &lane_points);
   LanePoint get_query_point(const LanePoint &start_point,
-                            const LanePoint &end_point);
+                            const LanePoint &end_point,
+                            const CubicPolyLine &cublic_lane);
   LanePoint get_next_node(const LanePoint &query_point,
-                          const LanePoint &center_point, double radius);
+                          const LanePoint &center_point, double radius,
+                          const CubicPolyLine &cubic_lane);
 
   void find_border_point(const std::vector<LanePoint> &candidate_points,
                          const LanePoint &query_point,
                          std::set<int> &no_assigned, LanePoint &inner_border,
                          LanePoint &outer_border, bool &outer_border_found);
+  Eigen::Vector3d get_nearest_on_circle(const Eigen::Vector3d &query,
+                                  const Eigen::Vector3d &center,
+                                  const double radius);
   void referesh_lane_points_with_ctrl_points();
   void referesh_kd_tree();
   void padding_control_points();

@@ -22,5 +22,7 @@ class PangolinDrawer {
   void draw_tracking_lanes(
       const std::map<int, LaneLandmark::Ptr> &tracking_lanes);
   void draw_vehicle(const Odometry &pose);
+  Eigen::Vector2d shift_;
+  bool shift_set_{false};
 };
 }  // namespace mono_lane_mapping

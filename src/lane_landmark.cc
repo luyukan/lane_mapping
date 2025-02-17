@@ -59,9 +59,11 @@ bool LaneLandmark::InitCtrlPointsWithLaneObservation(
     lane_points_world.push_back(lane_point);
   }
 
-  curve_fitting(lane_points_world);
+  CubicPolyLine cubic_line = curve_fitting(
+      lane_points_world);  // 观测转到世界坐标系下拟合出来的三次曲线
   const LanePoint initial_point = lane_points_world.at(0);
-  get_skeleton_points(lane_points_world, initial_point, true);
+  get_skeleton_points(lane_points_world, cubic_line, initial_point);
+  CatMullSmooth();
 
   return true;
 }
@@ -79,16 +81,11 @@ std::vector<LanePoint> LaneLandmark::update_lane_points(
 }
 
 void LaneLandmark::get_skeleton_points(
-    const std::vector<LanePoint> &lane_points, const LanePoint &initial_point,
-    bool initial_point_provided) {
-  std::vector<LanePoint> internal_lane_points;
-  LanePoint internal_initial_point;
-  if (!initial_point_provided) {
-    internal_initial_point = internal_lane_points.at(0);
-    control_points_.push_back(internal_initial_point);
-  } else {
-    internal_initial_point = initial_point;
-  }
+    const std::vector<LanePoint> &lane_points, const CubicPolyLine &cubic_lane,
+    const LanePoint &initial_point) {
+  std::vector<LanePoint> internal_lane_points = lane_points;
+  LanePoint internal_initial_point = internal_lane_points.at(0);
+  control_points_.push_back(internal_initial_point);
 
   while (true) {
     auto candidate_points = get_candidate_points(internal_lane_points);
@@ -100,10 +97,12 @@ void LaneLandmark::get_skeleton_points(
     for (size_t i = 0; i < candidate_points.size(); ++i) {
       no_assigned.insert(i);
     }
-    LanePoint inner_border, outer_border;  //
-    bool outer_border_found{false};
+    LanePoint inner_border, outer_border;
     // inner_border是距离query点距离小于chord thresh的点中距离最远的点
     // outer_border是距离query点中距离大于chord thresh中距离最近的点
+    // no_assigned 是origin_points中距离query点距离大于等于chord thresh的点的id
+    bool outer_border_found{false};
+
     find_border_point(internal_lane_points, initial_point, no_assigned,
                       inner_border, outer_border, outer_border_found);
 
@@ -118,27 +117,28 @@ void LaneLandmark::get_skeleton_points(
       if (distance_head <=
           distance_tail) {  // first control point closer to the inner border
         if (control_points_.size() >= 2) {
-          inner_border =
-              get_query_point(control_points_.at(1), control_points_.at(0));
+          inner_border = get_query_point(control_points_.at(1),
+                                         control_points_.at(0), cubic_lane);
         }
-        LanePoint next_initial = get_next_node(
-            inner_border, control_points_.at(0), ctrl_points_chord_);
+        LanePoint next_initial =
+            get_next_node(inner_border, control_points_.at(0),
+                          ctrl_points_chord_, cubic_lane);
         control_points_.push_back(next_initial);
         internal_initial_point = next_initial;
 
       } else {  // last control point closer to the inner border
         if (control_points_.size() >= 2) {
-          inner_border =
-              get_query_point(control_points_.at(control_points_.size() - 2),
-                              control_points_.at(control_points_.size() - 1));
+          inner_border = get_query_point(
+              control_points_.at(control_points_.size() - 2),
+              control_points_.at(control_points_.size() - 1), cubic_lane);
         }
         LanePoint next_initial = get_next_node(
             inner_border, control_points_.at(control_points_.size() - 1),
-            ctrl_points_chord_);
+            ctrl_points_chord_, cubic_lane);
         control_points_.push_back(next_initial);
         internal_initial_point = next_initial;
       }
-
+      return;
     } else {
       double distance_head =
           (control_points_.at(0).position - outer_border.position).norm();
@@ -148,23 +148,25 @@ void LaneLandmark::get_skeleton_points(
               .norm();
 
       if (distance_head <= distance_tail) {
-        if (control_points_.size() > 2) {
-          outer_border =
-              get_query_point(control_points_.at(1), control_points_.at(0));
+        if (control_points_.size() >= 2) {
+          outer_border = get_query_point(control_points_.at(1),
+                                         control_points_.at(0), cubic_lane);
         }
-        LanePoint next_initial = get_next_node(
-            outer_border, control_points_.at(0), ctrl_points_chord_);
+        LanePoint next_initial =
+            get_next_node(outer_border, control_points_.at(0),
+                          ctrl_points_chord_, cubic_lane);
         control_points_.push_back(next_initial);
         internal_initial_point = next_initial;
 
       } else {
-        if (control_points_.size() > 2) {
-          outer_border =
-              get_query_point(control_points_.at(control_points_.size() - 2),
-                              control_points_.at(control_points_.size() - 1));
+        if (control_points_.size() >= 2) {
+          outer_border = get_query_point(
+              control_points_.at(control_points_.size() - 2),
+              control_points_.at(control_points_.size() - 1), cubic_lane);
         }
-        LanePoint next_initial = get_next_node(
-            outer_border, control_points_.at(0), ctrl_points_chord_);
+        LanePoint next_initial =
+            get_next_node(outer_border, control_points_.at(0),
+                          ctrl_points_chord_, cubic_lane);
         control_points_.push_back(next_initial);
         internal_initial_point = next_initial;
       }
@@ -176,15 +178,58 @@ void LaneLandmark::get_skeleton_points(
 }
 
 LanePoint LaneLandmark::get_query_point(const LanePoint &start_point,
-                                        const LanePoint &end_point) {
+                                        const LanePoint &end_point,
+                                        const CubicPolyLine &cublic_lane) {
   LanePoint point;
+  Eigen::Vector3d start_point_transformed =
+      cublic_lane.poly_rotation * start_point.position;
+  Eigen::Vector3d end_point_transformed =
+      cublic_lane.poly_rotation * end_point.position;
+  double direction = end_point_transformed[0] - start_point_transformed[0];
+  direction = direction > 0 ? 1.0 : -1.0;
+  const double next_distance = 10.0;
+  double x_query = end_point_transformed[0] + direction * next_distance;
+  double y_query = ApplyCubicPoly(x_query, cublic_lane.cubic_polynomials_xy);
+  double z_query = ApplyCubicPoly(x_query, cublic_lane.cubic_polynomials_xz);
+  Eigen::Vector3d position = Eigen::Vector3d(x_query, y_query, z_query);
+  // transform back
+  point.position = cublic_lane.poly_rotation.transpose() * position;
+  point.visibility = start_point.visibility;
   return point;
 }
 LanePoint LaneLandmark::get_next_node(const LanePoint &query_point,
                                       const LanePoint &center_point,
-                                      double radius) {
-  LanePoint point;
-  return point;
+                                      double radius,
+                                      const CubicPolyLine &cublic_lane) {
+  LanePoint next_node;
+  Eigen::Vector3d query_transformed =
+      cublic_lane.poly_rotation * query_point.position;
+  Eigen::Vector3d center_transformed =
+      cublic_lane.poly_rotation * center_point.position;
+  const int search_times = 10;
+  Eigen::Vector3d last_result = Eigen::Vector3d::Zero();
+  for (int i = 0; i < search_times; ++i) {
+    Eigen::Vector3d nearst_on_circle = get_nearest_on_circle(
+        query_transformed, center_transformed,
+        radius);  // center_transformed
+                  // 到query_transformed的射线和以center_transformed为球心，radius为半径的球面的交点
+    double x = nearst_on_circle.x();
+    double y = ApplyCubicPoly(x, cublic_lane.cubic_polynomials_xy);
+    double z = ApplyCubicPoly(x, cublic_lane.cubic_polynomials_xz);
+    query_transformed = Eigen::Vector3d(x, y, z);
+    double delta = (query_transformed - last_result).norm();
+    if (delta < 1e-2) {
+      break;
+    }
+    last_result = query_transformed;
+  }
+
+  Eigen::Vector3d node_on_poly =
+      cublic_lane.poly_rotation.transpose() * query_transformed;
+  Eigen::Vector3d nearest_on_circle =
+      get_nearest_on_circle(node_on_poly, center_point.position, radius);
+  next_node.position = nearest_on_circle;
+  return next_node;
 }
 void LaneLandmark::referesh_kd_tree() {
   if (kd_tree_ == nullptr) {
@@ -291,13 +336,24 @@ std::vector<LanePoint> LaneLandmark::get_candidate_points(
       double cos_a = d_a.dot(normal_a);
       double cos_b = d_b.dot(normal_b);
       double cos_thresh = std::cos(Deg2Rad(candidate_angle_thresh_));
-      if (cos_a > cos_thresh || cos_b > cos_thresh) {
+      if (cos_a > cos_thresh ||
+          cos_b >
+              cos_thresh) {  // 夹角足够小，只能处于第一个控制点之前，或者最后一个控制点之后【控制点是有序点的情况下】
         candidate_points.push_back(lane_points.at(i));
       }
     }
 
     return candidate_points;
   }
+}
+
+Eigen::Vector3d LaneLandmark::get_nearest_on_circle(
+    const Eigen::Vector3d &query, const Eigen::Vector3d &center,
+    const double radius) {
+  Eigen::Vector3d dir = query - center;
+  dir.normalize();
+  Eigen::Vector3d intersection = center + radius * dir;
+  return intersection;
 }
 
 const LanePoint &LaneLandmark::get_control_point(const size_t id) {
@@ -310,11 +366,12 @@ std::vector<LanePoint> LaneLandmark::GetLanePoints() { return lane_points_; }
 
 uint8_t LaneLandmark::GetCategory() { return category_; }
 
-void LaneLandmark::curve_fitting(const std::vector<LanePoint> &lane_points) {
+CubicPolyLine LaneLandmark::curve_fitting(
+    const std::vector<LanePoint> &lane_points) {
   Eigen::MatrixXd data = ConstructDataMatrix(lane_points);
   Eigen::MatrixXd transformed_data;
   Eigen::Matrix3d data_rotation;
-  Eigen::VectorXd target_axis = Eigen::Vector2d::UnitY();
+  Eigen::VectorXd target_axis = Eigen::Vector2d::UnitX();
   GetTransformedData(data, target_axis, transformed_data, data_rotation);
 
   Eigen::VectorXd poly_xy =
@@ -322,9 +379,12 @@ void LaneLandmark::curve_fitting(const std::vector<LanePoint> &lane_points) {
   Eigen::VectorXd poly_xz =
       CubicPolyFit(transformed_data.col(0), transformed_data.col(2));
 
-  poly_rotation_ = data_rotation;
-  cubic_polynomials_xy_ = poly_xy;
-  cubic_polynomials_xz_ = poly_xz;
+  CubicPolyLine cubic_line;
+  cubic_line.cubic_polynomials_xy = poly_xy;
+  cubic_line.cubic_polynomials_xz = poly_xz;
+  cubic_line.poly_rotation = data_rotation;
+
+  return cubic_line;
 }
 
 }  // namespace mono_lane_mapping

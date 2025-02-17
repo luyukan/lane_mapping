@@ -27,8 +27,8 @@ struct FrameObservation {
 };
 
 struct MatchResult {
-  int queryIdx; // local observation id
-  int trainIdx; // landmark id
+  int queryIdx;  // local observation id
+  int trainIdx;  // landmark id
 };
 
 struct PreProcessParameter {
@@ -45,9 +45,9 @@ struct LaneMappingParameter {
 };
 
 struct LaneAssoParameter {
-  double yaw_std{5.0}; // deg
-  double translation_std{5.0}; // meter
-  double lane_width{3.5}; // meter
+  double yaw_std{5.0};          // deg
+  double translation_std{5.0};  // meter
+  double lane_width{3.5};       // meter
   double min_match_ratio{0.5};
 };
 
@@ -62,5 +62,10 @@ struct WindowLandMarkTrackInfo {
   int window_end_id;
 };
 
+struct CubicPolyLine {
+  Eigen::Matrix3d poly_rotation;
+  Eigen::VectorXd cubic_polynomials_xy;
+  Eigen::VectorXd cubic_polynomials_xz;
+};
 
 }  // namespace mono_lane_mapping

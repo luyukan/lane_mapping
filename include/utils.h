@@ -1,13 +1,15 @@
 #pragma once
 #include <math.h>
+
 #include <Eigen/Eigen>
+#include <Eigen/Dense>
+#include <iostream>
 
 #include "type_define.h"
 
 namespace mono_lane_mapping {
 
-
-inline Eigen::VectorXd Pca(const Eigen::MatrixXd& data) {
+inline Eigen::VectorXd Pca(const Eigen::MatrixXd &data) {
   Eigen::VectorXd mean = data.colwise().mean();
   Eigen::MatrixXd centered = data.rowwise() - mean.transpose();
   Eigen::MatrixXd cov = (centered.transpose() * centered) / (data.rows() - 1);
@@ -15,17 +17,20 @@ inline Eigen::VectorXd Pca(const Eigen::MatrixXd& data) {
   Eigen::VectorXd eigenvalues = solver.eigenvalues();
   Eigen::MatrixXd eigenvectors = solver.eigenvectors();
 
-  return eigenvectors.col(0);
+  int max_index = 0;
+  double max_value = eigenvalues[0];
+  for (int i = 1; i < eigenvalues.size(); ++i) {
+      if (eigenvalues[i] > max_value) {
+          max_value = eigenvalues[i];
+          max_index = i;
+      }
+  }
+  return eigenvectors.col(max_index);
 }
 
-inline double Deg2Rad(const double deg) {
+inline double Deg2Rad(const double deg) { return deg * (M_PI / 180.0); }
 
-  return deg * (M_PI / 180.0);
-}
-
-inline double Rad2Deg(const double rad) {
-  return rad / M_PI * 180.0;
-}
+inline double Rad2Deg(const double rad) { return rad / M_PI * 180.0; }
 
 inline Eigen::VectorXd CubicPolyFit(const Eigen::VectorXd &x,
                                     const Eigen::VectorXd &y) {
@@ -78,14 +83,17 @@ inline void GetTransformedData(const Eigen::MatrixXd &data,
                                const Eigen::VectorXd &target_axis,
                                Eigen::MatrixXd &transformed_data,
                                Eigen::Matrix3d &R) {
-
-  Eigen::VectorXd principleAxis = Pca(data.leftCols(2));
-  double dot = principleAxis.dot(target_axis);
-  double cross = principleAxis.x() * target_axis.y() - principleAxis.y() * target_axis.x();
-  double angle = atan2(cross, dot);
-  R = Eigen::AngleAxisd(-angle, Eigen::Vector3d::UnitZ()).toRotationMatrix();
+  Eigen::Vector3d principleAx = Eigen::Vector3d::Zero();
+  principleAx.head(2) = Pca(data.leftCols(2));
+  Eigen::Vector3d targetAx = Eigen::Vector3d::Zero();
+  targetAx.head(2) = target_axis;
+  
+  Eigen::Vector3d rotate_ax = principleAx.cross(targetAx);
+  rotate_ax.normalize();
+  double cos_theta = principleAx.dot(targetAx);
+  double theta = std::acos(cos_theta);
+  R = Eigen::AngleAxisd(theta, rotate_ax).toRotationMatrix();
   transformed_data = (R * data.transpose()).transpose();
-
 }
 
 }  // namespace mono_lane_mapping

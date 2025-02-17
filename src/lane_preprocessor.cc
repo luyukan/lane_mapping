@@ -14,9 +14,12 @@ void LanePreprocessor::denoisePoints(
 
   Eigen::VectorXd principleAxis;
   Eigen::MatrixXd transformed_X;
-  Eigen::VectorXd targetAxis = Eigen::Vector2d::UnitY();
+  Eigen::VectorXd targetAxis = Eigen::Vector2d::UnitX();
   Eigen::Matrix3d data_rotation;
   GetTransformedData(X, targetAxis, transformed_X, data_rotation);
+
+  // std::cout << transformed_X << std::endl;
+  // std::cout << "###############\n";
 
   double min_x = transformed_X.col(0).minCoeff();
   double max_x = transformed_X.col(0).maxCoeff();
@@ -44,14 +47,10 @@ void LanePreprocessor::denoisePoints(
   //  std::cout << "---------\n";
 }
 
-void LanePreprocessor::DenoiseLanePoints(
+void LanePreprocessor::DenoiseLaneObservation(
     const FrameObservation &frame_observation,
     FrameObservation &cur_frame_observation) {
   for (size_t i = 0; i < frame_observation.lane_observations.size(); ++i) {
-    // if (frame_observation.lane_observations.at(i).lane_points.size() <
-    //     observation_pts_num_min_) {
-    //   continue;
-    // }
     std::vector<LanePoint> denoised_lane_points;  // 拟合出来的车道线的点
     denoisePoints(frame_observation.lane_observations.at(i).lane_points,
                   denoised_lane_points);

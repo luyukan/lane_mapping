@@ -43,22 +43,22 @@ void LaneMapper::InputSyncData(const Odometry &pose,
             << std::endl;
   LaneTracker &lane_tracker = LaneTracker::GetInstance();
   if (initialized_) {
-    track_with_map(frame_observation, pose);
-    smooth();
+    // track_with_map(frame_observation, pose);
+    // smooth();
   } else {
     init_map(cur_frame_observation, pose);
     last_frame_observation_ = frame_observation;
-    initialized_ = true;
+    // initialized_ = true;
     std::cout << "System Initialized\n";
   }
-  last_frame_observation_ = frame_observation;
+  last_frame_observation_ = cur_frame_observation;
 }
 
 void LaneMapper::preprocess_lane_points(
     const FrameObservation &frame_observation,
     FrameObservation &cur_frame_observation) {
   LanePreprocessor &lane_preprocessor = LanePreprocessor::GetInstance();
-  lane_preprocessor.DenoiseLanePoints(frame_observation, cur_frame_observation);
+  lane_preprocessor.DenoiseLaneObservation(frame_observation, cur_frame_observation);
 }
 
 void LaneMapper::track_with_last_frame(
